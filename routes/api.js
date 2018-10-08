@@ -1,6 +1,6 @@
 const router = require("express").Router()
-const { query, validationResult, } = require('express-validator/check')
-const { sanitizeQuery } = require('express-validator/filter')
+const { body, param, query, validationResult, } = require('express-validator/check')
+const { sanitizeQuery, sanitizeBody, sanitizeParam } = require('express-validator/filter')
 const fetch = require('node-fetch')
 const Ticker = require('../models/Ticker')
 
@@ -22,42 +22,26 @@ module.exports = () => {
   ///////////////////////////////////////////////////////////
   // Validations
   ///////////////////////////////////////////////////////////
-  const parseQuery = (req, res, next) => {
-
-    if (!req.query.stock) {
-      return next(Error('Must include valid stock in request'))
-    }
-
-    if (typeof req.query.stock === 'string') {
-      req.query.stock = [req.query.stock]
-    }
-
-    next()
-  }
-
-
-  const stock_ticker_validation = [
-    query('stock')
-      .isArray()
-      .withMessage('stock query must be an array')
-      .custom(q => q.length >= 1)
-      .withMessage('Must include valid stock in query')
-      .custom(q => q.length <= 2)
-      .withMessage('Maximum of two stocks permitted')
-      .custom(q => (
-        q.length === 1 
-          || q.length === 2
-          && q[0].toLowerCase() !== q[1].toLowerCase())
-      )
-      .withMessage('Stocks symbols must be unique when comparing'),
-
-    query('stock.*')
-      .isLength({ min: 4, max: 5 })
-      .withMessage('Stock Ticker invalid, should be four or five characters')
+  const textVal = [
+    body('text')
+      .trim()
+      .isLength({min: 1})
+      .withMessage('Text missing')
       .isAscii()
-      .withMessage('Stock Ticker should include only valid ascii characters'),
+      .withMessage('Text should include only valid ascii characters'),
 
-    sanitizeQuery('stock.*').trim(),
+    sanitizeBody('text').trim(),
+  ]
+
+  const passVal = [
+    body('delete_password')
+      .trim()
+      .isLength({min: 1})
+      .withMessage('Delete Password missing')
+      .isAscii()
+      .withMessage('Delete Password should include only valid ascii characters'),
+
+    sanitizeBody('delete_password').trim(),
   ]
 
 
@@ -68,14 +52,16 @@ module.exports = () => {
   router.route('/threads/:board')
 
     // ** POST ** request
-    .post((req, res, next) => {
+    .post(textVal, passVal, (req, res, next) => {
 
       const errors = validationResult(req)
       if (!errors.isEmpty()) {
+        // console.log(errors.array())
         return next(Error(errors.array()[0].msg))
       }
 
-      res.json({success:true, message: 'testing'})
+      res.redirect(`/b/${req.params.board}`)
+      // res.json({success:true, message: 'testing'})
 
       })
 

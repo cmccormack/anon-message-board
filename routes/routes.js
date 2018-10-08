@@ -16,7 +16,9 @@ module.exports = (app) => {
   // API
   ///////////////////////////////////////////////////////////
   const apiRouter = require('./api')()
+  const viewRouter = require('./apiview')()
   app.use("/api", apiRouter)
+  app.use("/b", viewRouter)
 
 
   ///////////////////////////////////////////////////////////

@@ -18,7 +18,40 @@ suite('Functional Tests', function() {
   suite('API ROUTING FOR /api/threads/:board', function() {
     
     suite('POST', function() {
-      
+      test('no param or body', done => {
+        chai.request(server)
+          .post(`/api/threads`)
+          .end((err, res) => {
+            assert.ok(res.status)
+            assert.equal(res.text, 'Page Not Found')
+            done()
+          })
+      })
+
+      test('no body', done => {
+        chai.request(server)
+          .post(`/api/threads/test`)
+          .send({})
+          .end((err, res) => {
+            assert.ok(res.status)
+            assert.property(res.body, 'success', "response must include 'success' property")
+            assert.property(res.body, 'error', "response must include 'error' property")
+            assert.isFalse(res.body.success)
+            assert.equal(res.body.error, 'Text missing')
+            done()
+          })
+      })
+
+      test('successful post with valid body', done => {
+        chai.request(server)
+          .post(`/api/threads/test`)
+          .send({text: 'some text', delete_password: 'password'})
+          .end((err, res) => {
+            assert.ok(res.status)
+            console.log(res.body)
+            done()
+          })
+      })
     });
     
     suite('GET', function() {
@@ -30,7 +63,6 @@ suite('Functional Tests', function() {
             assert.ok(res.status)
             done()
           })
-
       })
     });
     

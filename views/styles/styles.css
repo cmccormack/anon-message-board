@@ -1,0 +1,170 @@
+body, html {
+    font-family: "Roboto", sans-serif;
+  }
+  
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+  }
+  
+  header h1 {
+    color: teal;
+    font-weight: 300;
+    font-size: 4rem;
+    margin: 3rem 0;
+    text-align: center;
+  }
+  
+  
+  
+  main {
+    display: flex;
+    flex-direction: column;
+    width: 640px;
+    min-width: 320px;
+  }
+  
+  
+  section {
+    background-color: lightseagreen;
+    border: 1px solid darkgreen;
+    padding: 1.5rem;
+    border-radius: 4px;
+    margin-bottom: 30px;
+  
+  }
+  
+  .section-title {
+    display: block;
+    margin: .5rem 0;
+    font-size: 2rem;
+    font-weight: 400;
+  }
+
+  table, th, td {
+    border: 2px solid rgba(0,0,0,0.6);
+    border-collapse: collapse;
+  }
+
+  th {
+    background-color: rgba(0,0,0,0.6);
+    color: #f9dd76;
+    font-weight: 400;
+    padding: 4px;
+  }
+
+  td {
+    padding: 4px;
+    text-align: center;
+  }
+
+  td pre {
+    float: none;
+  }
+
+  pre {
+    background-color: #f9dd76;
+    padding: 2px 8px;
+    border-radius: 2px;
+    float: left;
+    clear: left;
+    margin: .3rem 0;
+
+    white-space: pre-wrap;
+    white-space: -moz-pre-wrap;
+    word-wrap: break-word;
+  }
+
+  pre.inline {
+    display: inline;
+    padding: 2px;
+    margin: 0 4px;
+  }
+
+  a {
+    text-decoration: none;
+    box-decoration-break: clone;
+    background-color: lightblue;
+    padding: 2px 8px;
+    border-radius: 2px;
+  }
+
+  /* Begin Form Styles */
+  form {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .form-title {
+    color: #f8c406;
+    font-size: 1.6rem;
+    font-weight: 200;
+    /* text-transform: capitalize; */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+  }
+
+  .input-row {
+    display: block;
+    margin: 10px 0;
+  }
+
+  .input-row.checkboxes {
+    display: flex;
+  }
+
+  .checkboxes label {
+    line-height: 1.2;
+    font-size: 1rem;
+  }
+
+  input[type="text"], textarea {
+    box-sizing: border-box;
+    padding: .3rem;
+    border: 2px solid black;
+    display: block;
+    width: 100%;
+  }
+  
+  label {
+    color: rgba(0,0,0,0.8);
+    font-weight: 400;
+    font-size: .7rem;
+    margin-left: 4px;
+  }
+
+  label span {
+    color: rgba(0,0,0,0.6);
+  }
+
+  .submit-btn {
+    background: teal;
+    color: white;
+    padding: .3rem;
+    border: 2px solid black;
+    width: 120px;
+  }
+  /* End Form Styles */
+
+
+  .hidden {
+    visibility: hidden;
+  }
+  
+  
+  @media screen and (max-width: 768px) {
+    header h1 {
+      font-size: 3rem;
+    }
+  
+    main {
+      width: 100%;
+    }
+  }
+  
+  @media screen and (max-width: 420px) {
+    header h1 {
+      font-size: 2.4rem;
+    }
+  }

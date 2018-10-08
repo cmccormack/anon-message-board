@@ -1,0 +1,76 @@
+html
+    head
+        title= title
+        meta(name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no")
+        meta(name="author" content="Chris McCormack")
+
+        link(rel="stylesheet" type="text/css" href="./styles/styles.css")
+        link(rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500")
+
+        link(rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png")
+        link(rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png")
+        link(rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png")
+        link(rel="manifest" href="/images/site.webmanifest")
+        link(rel="mask-icon" href="/images/safari-pinned-tab.svg" color="#5bbad5")
+        link(rel="shortcut icon" href="/images/favicon.ico")
+
+        meta(name="msapplication-TileColor" content="#da532c")
+        meta(name="msapplication-config" content="/images/browserconfig.xml")
+        meta(name="theme-color" content="#ffffff")
+    body
+        header
+            h1= header
+
+        main
+            section#example_usage
+                span.section-title Example Usage
+                table
+                    tr
+                        th 
+                        th GET
+                        th POST
+                        th PUT
+                        th DELETE
+                    tr
+                        td
+                            pre /api/threads/{board}
+                        td list recent threads
+                        td create thread
+                        td report thread
+                        td delete thread with password
+                    tr
+                        td
+                            pre /api/replies/{board}
+                        td show all replies on thread
+                        td create reply on thread
+                        td report reply on thread
+                        td 
+                            | change reply to
+                            pre.inline [deleted]
+                            | on thread
+
+            section#try_it
+                span.section-title Try It Yourself!
+                form#new-thread-form(action="/api/threads/:board" method="POST")
+                    span.form-title Add New Thread (POST /api/threads/:board)
+                    div.input-row
+                        label(for="new-thread-board-input") Board
+                            span  - Required
+                        input#new-thread-board-input(
+                            type="text" placeholder="What's going on this weekend?" name="board" minLength="1")
+                    div.input-row
+                        label(for="new-thread-text-input") Thread Text
+                            span  - Required
+                        textarea#new-thread-text-input(
+                            type="text" placeholder="random" name="text" minLength="1")
+                    div.input-row
+                        label(for="new-thread-password-input") Deletion Password
+                            span  - Required
+                        input#new-thread-password-input(
+                            type="text" placeholder="monkey123" name="password" minLength="1")
+                    button.submit-btn(type="submit") Submit
+
+                    div.input-row
+                        pre.output.hidden
+
+        script(src="scripts/scripts.js")

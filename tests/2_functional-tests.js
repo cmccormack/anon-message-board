@@ -6,12 +6,32 @@
 *       (if additional are added, keep them at the very end!)
 */
 
-var chaiHttp = require('chai-http');
-var chai = require('chai');
-var assert = chai.assert;
-var server = require('../server');
+const chaiHttp = require('chai-http');
+const chai = require('chai');
+const assert = chai.assert;
+const server = require('../server');
+const Thread = require('../models/Thread')
+const Reply = require('../models/Reply')
 
 chai.use(chaiHttp);
+
+before(done => {
+  Thread.deleteMany({})
+  .exec((err) => {
+    if (err) { throw new Error(err) }
+    console.log('Deleted all documents in threads collection')
+    done()
+  })
+})
+
+before(done => {
+  Reply.deleteMany({})
+    .exec((err) => {
+      if (err) { throw new Error(err) }
+      console.log('Deleted all documents in replies collection')
+      done()
+    })
+})
 
 suite('Functional Tests', function() {
 

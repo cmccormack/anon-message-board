@@ -2,7 +2,7 @@ const router = require("express").Router()
 const { body, param, query, validationResult, } = require('express-validator/check')
 const { sanitizeQuery, sanitizeBody, sanitizeParam } = require('express-validator/filter')
 const fetch = require('node-fetch')
-const Ticker = require('../models/Ticker')
+const Thread = require('../models/Thread')
 
 
 module.exports = () => {
@@ -59,6 +59,10 @@ module.exports = () => {
         // console.log(errors.array())
         return next(Error(errors.array()[0].msg))
       }
+
+      const { board } = req.params
+      const { delete_password, text } = req.body
+      console.log(board, delete_password, text)
 
       res.redirect(`/b/${req.params.board}`)
       // res.json({success:true, message: 'testing'})

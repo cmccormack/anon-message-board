@@ -11,7 +11,6 @@ const chai = require('chai');
 const assert = chai.assert;
 const server = require('../server');
 const Thread = require('../models/Thread')
-const Reply = require('../models/Reply')
 
 chai.use(chaiHttp);
 
@@ -24,13 +23,24 @@ before(done => {
   })
 })
 
+let test_id
 before(done => {
-  Reply.deleteMany({})
-    .exec((err) => {
-      if (err) { throw new Error(err) }
-      console.log('Deleted all documents in replies collection')
-      done()
-    })
+  const newThreads = Array(20).fill().map((v,i) => ({
+    board: 'test',
+    delete_password: 'password',
+    text: `test thread ${i+1}`,
+    replies: Array(5).fill().map((v, i) => ({
+      text: `test reply ${i+1}`,
+      delete_password: 'password',
+    }))
+  }))
+
+  Thread.insertMany(newThreads, (err, docs) => {
+    if (err) { throw new Error(err) }
+    test_id = docs[0]._id
+    console.log('Inserted multiple test Thread documents to DB')
+    done()
+  })
 })
 
 suite('Functional Tests', function() {
@@ -38,7 +48,7 @@ suite('Functional Tests', function() {
   suite('API ROUTING FOR /api/threads/:board', function() {
     
     suite('POST', function() {
-      test('no param or body', done => {
+      test('new thread with no param or body', done => {
         chai.request(server)
           .post(`/api/threads`)
           .end((err, res) => {
@@ -48,7 +58,7 @@ suite('Functional Tests', function() {
           })
       })
 
-      test('no body', done => {
+      test('new thread with no body', done => {
         chai.request(server)
           .post(`/api/threads/test`)
           .send({})
@@ -62,13 +72,20 @@ suite('Functional Tests', function() {
           })
       })
 
-      test('successful post with valid body', done => {
+      test('new thread with valid body', done => {
         chai.request(server)
           .post(`/api/threads/test`)
-          .send({text: 'some text', delete_password: 'password'})
+          .send({
+            text: 'first thread',
+            delete_password: 'password'
+          })
           .end((err, res) => {
             assert.ok(res.status)
-            console.log(res.body)
+            assert.equal(
+              res.redirects[0].split('/b/')[1],
+              'test',
+              'should be redirected to `/b/test`'
+            )
             done()
           })
       })
@@ -80,7 +97,11 @@ suite('Functional Tests', function() {
         chai.request(server)
           .get(`/api/threads/test`)
           .end((err, res) => {
+            console.log('id', test_id)
             assert.ok(res.status)
+            assert.isArray(res.body)
+            const doc = res.body.filter(v => v._id == test_id)[0]
+            console.log(doc.replies[0])
             done()
           })
       })
@@ -100,6 +121,17 @@ suite('Functional Tests', function() {
   suite('API ROUTING FOR /api/replies/:board', function() {
     
     suite('POST', function() {
+      test('new reply with valid body', done => {
+        chai.request(server)
+          .post('/api/replies/test')
+          .send({
+            thread_id: null,
+          })
+          .end(err => {
+            assert.ok()
+            done()
+          })
+      })
       
     });
     

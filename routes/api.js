@@ -2,7 +2,10 @@ const router = require("express").Router()
 const { body, param, query, validationResult, } = require('express-validator/check')
 const { sanitizeQuery, sanitizeBody, sanitizeParam } = require('express-validator/filter')
 const fetch = require('node-fetch')
+// const Board = require('../models/Board')
 const Thread = require('../models/Thread')
+// const Reply = require('../models/Reply')
+
 
 
 module.exports = () => {
@@ -52,7 +55,7 @@ module.exports = () => {
   router.route('/threads/:board')
 
     // ** POST ** request
-    .post(textVal, passVal, (req, res, next) => {
+    .post(textVal, passVal, async (req, res, next) => {
 
       const errors = validationResult(req)
       if (!errors.isEmpty()) {
@@ -62,23 +65,32 @@ module.exports = () => {
 
       const { board } = req.params
       const { delete_password, text } = req.body
-      console.log(board, delete_password, text)
 
-      res.redirect(`/b/${req.params.board}`)
-      // res.json({success:true, message: 'testing'})
+      new Thread({ text, delete_password, board })
+        .save((err, thread) => {
+          if (err) {
+            return next(Error(err))
+          }
 
+          res.redirect(`/b/${req.params.board}`)
+        })
       })
 
 
     // ** GET ** request
     .get((req, res, next) => {
 
-      const errors = validationResult(req)
-      if (!errors.isEmpty()) {
-        return next(Error(errors.array()[0].msg))
-      }
+      const { board } = req.params
 
-      res.json({success:true, message: 'testing'})
+      Thread.find({board})
+      .select({reported: 0, delete_password: 0, __v: 0})
+      .limit(10)
+      .exec((err, threads) => {
+        if (err) { return next(Error(err)) }
+
+        res.json(threads)
+      })
+
       
     })
 
@@ -115,16 +127,22 @@ module.exports = () => {
   router.route('/replies/:board')
 
     // ** POST ** request
-    .post((req, res, next) => {
+    .post(textVal, passVal, async (req, res, next) => {
 
       const errors = validationResult(req)
       if (!errors.isEmpty()) {
+        // console.log(errors.array())
         return next(Error(errors.array()[0].msg))
       }
 
-      res.json({success:true, message: 'testing'})
+      const { board } = req.params
+      const { delete_password, text, thread_id } = req.body
+
+      Thread.findById(thread_id, (err, thread) => {
+        console.log(thread)
 
       })
+    })
 
 
     // ** GET ** request

@@ -6,11 +6,11 @@ const threadSchema = new mongoose.Schema({
   replies: [{
     text: { type: String, required: true },
     delete_password: { type: String, required: true },
-    created_on: { type: Date, default: Date.now() },
+    created_on: { type: Date, default: Date.now },
     reported: { type: Boolean, default: false },
   }],
-  created_on: { type: Date, default: Date.now() },
-  bumped_on: { type: Date, default: Date.now() },
+  created_on: { type: Date, default: Date.now },
+  bumped_on: { type: Date, default: Date.now },
   reported: { type: Boolean, default: false },
   board: { type: String, required: true },
 })

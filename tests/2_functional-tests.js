@@ -16,11 +16,11 @@ chai.use(chaiHttp);
 
 before(done => {
   Thread.deleteMany({})
-  .exec((err) => {
-    if (err) { throw new Error(err) }
-    console.log('Deleted all documents in threads collection')
-    done()
-  })
+    .exec((err) => {
+      if (err) { throw new Error(err) }
+      console.log('Deleted all documents in threads collection')
+      done()
+    })
 })
 
 let test_id
@@ -28,20 +28,20 @@ before(done => {
   const newThreads = Array(20).fill().map((v,i) => ({
     board: 'test',
     delete_password: 'password',
-    text: `test thread ${i+1}`,
+    text: `auto-generated thread ${i+1}`,
     replies: Array(5).fill().map((v, i) => ({
-      text: `test reply ${i+1}`,
+      text: `auto-generated reply ${i+1}`,
       delete_password: 'password',
     }))
   }))
 
   Thread.insertMany(newThreads, (err, docs) => {
     if (err) { throw new Error(err) }
-    test_id = docs[0]._id
     console.log('Inserted multiple test Thread documents to DB')
     done()
   })
 })
+
 
 suite('Functional Tests', function() {
 
@@ -76,8 +76,8 @@ suite('Functional Tests', function() {
         chai.request(server)
           .post(`/api/threads/test`)
           .send({
-            text: 'first thread',
-            delete_password: 'password'
+            text: 'first test-generated thread',
+            delete_password: 'password',
           })
           .end((err, res) => {
             assert.ok(res.status)
@@ -93,15 +93,26 @@ suite('Functional Tests', function() {
     
     suite('GET', function() {
       
-      test('test get request', done => {
+      let test_doc
+      test('test get request for `test` board threads', done => {
         chai.request(server)
           .get(`/api/threads/test`)
           .end((err, res) => {
-            console.log('id', test_id)
             assert.ok(res.status)
             assert.isArray(res.body)
-            const doc = res.body.filter(v => v._id == test_id)[0]
-            console.log(doc.replies[0])
+            assert.equal(res.body.length, 10, 'GET request should return only 10 items')
+            assert.isAbove(
+              new Date(res.body[0].bumped_on).getTime(),
+              new Date(res.body[1].bumped_on).getTime(),
+              'First item in response array should be most recently bumped document'
+            )
+            assert.equal(res.body[0].text, 'first test-generated thread')
+            assert.notProperty(res.body[0], 'delete_password', 'delete_password should not be a property of Thread')
+            assert.notProperty(res.body[0], 'reported', 'reported should not be a property of Thread')
+            assert.isArray(res.body[1].replies, 'Thread replies should be of type Array')
+            assert.isAtMost(res.body[1].replies.length, 3, 'replies array should only contain a max of 3 items')
+            test_doc = res.body[0]
+            thread_id = test_doc._id
             done()
           })
       })
@@ -125,7 +136,7 @@ suite('Functional Tests', function() {
         chai.request(server)
           .post('/api/replies/test')
           .send({
-            thread_id: null,
+            thread_id,
           })
           .end(err => {
             assert.ok()

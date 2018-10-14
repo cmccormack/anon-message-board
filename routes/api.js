@@ -84,11 +84,15 @@ module.exports = () => {
 
       Thread.find({board})
       .select({reported: 0, delete_password: 0, __v: 0})
+      .sort({'bumped_on': -1})
       .limit(10)
       .exec((err, threads) => {
         if (err) { return next(Error(err)) }
 
-        res.json(threads)
+        res.json(threads.map(thread => {
+          thread.replies = thread.replies.slice(0, 3)
+          return thread
+        }))
       })
 
       

@@ -47,6 +47,13 @@ module.exports = () => {
     sanitizeBody('delete_password').trim(),
   ]
 
+  const idVal = [
+    body('thread_id')
+      .trim()
+      .isMongoId()
+      .withMessage('Thread ID should be a valid MongoID')
+  ]
+
 
 
   ///////////////////////////////////////////////////////////
@@ -131,7 +138,7 @@ module.exports = () => {
   router.route('/replies/:board')
 
     // ** POST ** request
-    .post(textVal, passVal, async (req, res, next) => {
+    .post(idVal, textVal, passVal, async (req, res, next) => {
 
       const errors = validationResult(req)
       if (!errors.isEmpty()) {
@@ -143,7 +150,13 @@ module.exports = () => {
       const { delete_password, text, thread_id } = req.body
 
       Thread.findById(thread_id, (err, thread) => {
-        console.log(thread)
+        if (err) {
+          return next(Error(err))
+        }
+
+        
+
+        res.redirect(`/b/${req.params.board}/${thread_id}`)
 
       })
     })

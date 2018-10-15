@@ -132,14 +132,36 @@ suite('Functional Tests', function() {
   suite('API ROUTING FOR /api/replies/:board', function() {
     
     suite('POST', function() {
-      test('new reply with valid body', done => {
+      test('new reply missing body', done => {
+        chai.request(server)
+          .post('/api/replies/test')
+          .send({})
+          .end((err, res) => {
+            assert.ok(res.status)
+            assert.property(res.body, 'success')
+            assert.property(res.body, 'error')
+            assert.isFalse(res.body.success, 'Reponse success should be false')
+            assert.equal(res.body.error, 'Thread ID should be a valid MongoID')
+            done()
+          })
+      })
+
+      test('new reply valid body', done => {
         chai.request(server)
           .post('/api/replies/test')
           .send({
             thread_id,
+            delete_password: 'password',
+            text: 'first reply'
           })
-          .end(err => {
-            assert.ok()
+          .end((err, res) => {
+            assert.ok(res.status)
+            console.log(res.redirects)
+            assert.equal(
+              res.redirects[0].split('/b/')[1],
+              `test/${thread_id}`,
+              `should be redirected to \`/b/test${thread_id}\``
+            )
             done()
           })
       })

@@ -2,24 +2,16 @@ const router = require("express").Router()
 const { body, param, query, validationResult, } = require('express-validator/check')
 const { sanitizeQuery, sanitizeBody, sanitizeParam } = require('express-validator/filter')
 const fetch = require('node-fetch')
-// const Board = require('../models/Board')
 const Thread = require('../models/Thread')
-// const Reply = require('../models/Reply')
 
 
 
 module.exports = () => {
 
   ///////////////////////////////////////////////////////////
-  // Utility Endpoints
+  // Utility Functions
   ///////////////////////////////////////////////////////////
-  router.get("/wipeticker", (req, res) => {
-    Ticker.deleteMany({}, err => {
-      if (err) return Error(err.message)
-      const message = "Successfully wiped 'books' collection"
-      res.json({ success: true, message, })
-    })
-  })
+
 
 
   ///////////////////////////////////////////////////////////
@@ -29,9 +21,9 @@ module.exports = () => {
     body('text')
       .trim()
       .isLength({min: 1})
-      .withMessage('Text missing')
+      .withMessage('text missing')
       .isAscii()
-      .withMessage('Text should include only valid ascii characters'),
+      .withMessage('text should include only valid ascii characters'),
 
     sanitizeBody('text').trim(),
   ]
@@ -40,9 +32,9 @@ module.exports = () => {
     body('delete_password')
       .trim()
       .isLength({min: 1})
-      .withMessage('Delete Password missing')
+      .withMessage('delete_password missing')
       .isAscii()
-      .withMessage('Delete Password should include only valid ascii characters'),
+      .withMessage('delete_password should include only valid ascii characters'),
 
     sanitizeBody('delete_password').trim(),
   ]
@@ -51,7 +43,14 @@ module.exports = () => {
     body('thread_id')
       .trim()
       .isMongoId()
-      .withMessage('Thread ID should be a valid MongoID')
+      .withMessage('thread_id should be a valid MongoID')
+  ]
+
+  const queryIdVal = [
+    query('thread_id')
+      .trim()
+      .isMongoId()
+      .withMessage('thread_id should be a valid MongoID')
   ]
 
 
@@ -66,7 +65,6 @@ module.exports = () => {
 
       const errors = validationResult(req)
       if (!errors.isEmpty()) {
-        // console.log(errors.array())
         return next(Error(errors.array()[0].msg))
       }
 
@@ -90,32 +88,57 @@ module.exports = () => {
       const { board } = req.params
 
       Thread.find({board})
-      .select({reported: 0, delete_password: 0, __v: 0})
+      .select({ reported: 0, delete_password: 0, __v: 0, board: 0 })
       .sort({'bumped_on': -1})
       .limit(10)
       .exec((err, threads) => {
         if (err) { return next(Error(err)) }
 
         res.json(threads.map(thread => {
+          thread = thread.toObject()
           thread.replies = thread.replies.slice(0, 3)
+            .map(({delete_password, reported, ...reply}) => reply)
           return thread
         }))
       })
-
-      
     })
 
 
     // ** DELETE ** request
-    .delete((req, res, next) => {
+    .delete(idVal, passVal, (req, res, next) => {
 
       const errors = validationResult(req)
       if (!errors.isEmpty()) {
         return next(Error(errors.array()[0].msg))
       }
 
-      res.json({success:true, message: 'testing'})
+      const { board } = req.params
+      const { thread_id, delete_password } = req.body
       
+      Thread.findOne({_id: thread_id, board})
+      .exec((err, thread) => {
+        if (err) {
+          return next(Error(err))
+        }
+        if (!thread) {
+          return next(Error(`thread_id ${thread_id} not found`))
+        }
+        if (thread.delete_password !== delete_password) {
+          return res.send('incorrect password')
+        }
+
+        Thread.findByIdAndDelete(thread._id)
+          .exec((err, thread) => {
+            if (err) {
+              return next(Error(err))
+            }
+            if (!thread) {
+              return next(Error(`thread_id ${thread_id} not found`))
+            }
+
+            res.send('success')
+          })
+      })
     })
 
 
@@ -148,47 +171,53 @@ module.exports = () => {
 
       const { board } = req.params
       const { delete_password, text, thread_id } = req.body
+      const update = {
+        $push: { replies: { text, delete_password } },
+        bumped_on: new Date()
+      }
 
-      Thread.findById(thread_id, (err, thread) => {
+      Thread.findOneAndUpdate(
+        { _id: thread_id, board },
+        update, {new: true}, (err, thread) => {
         if (err) {
           return next(Error(err))
         }
-
-        
+        if (!thread) {
+          return next(Error(`thread_id ${thread_id} not found`))
+        }
 
         res.redirect(`/b/${req.params.board}/${thread_id}`)
-
       })
     })
 
 
-    // ** GET ** request
-    .get((req, res, next) => {
-
-      if (req.query.thread_id) {
-        return next()
-      }
+    // ** GET ** request with query thread_id
+    .get(queryIdVal, (req, res, next) => {
+      
+      const { board } = req.params
+      const { thread_id } = req.query
 
       const errors = validationResult(req)
       if (!errors.isEmpty()) {
         return next(Error(errors.array()[0].msg))
       }
 
-      res.json({success:true, message: 'testing get without query'})
-      
-    })
 
-    // ** GET ** request with query
-    .get((req, res, next) => {
+      Thread.findOne({_id: thread_id, board})
+        .select({ delete_password: 0, __v: 0, reported: 0, board: 0 })
+        .exec((err, thread) => {
+          if (err) {
+            return next(Error(err))
+          }
+          if (!thread) {
+            return next(Error(`thread_id ${thread_id} not found`))
+          }
 
-      console.log(req.query)
-      const errors = validationResult(req)
-      if (!errors.isEmpty()) {
-        return next(Error(errors.array()[0].msg))
-      }
-
-      res.json({success:true, message: 'testing get with query'})
-      
+          thread = thread.toObject()
+          thread.replies = thread.replies
+            .map(({delete_password, reported, ...reply}) => reply)
+          res.json(thread)
+        })
     })
 
 

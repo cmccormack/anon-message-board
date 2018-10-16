@@ -23,7 +23,10 @@ before(done => {
     })
 })
 
-let test_id
+const fake_id = '111111111111111111111111'
+let test_doc
+let gen_doc
+let gen_docs
 before(done => {
   const newThreads = Array(20).fill().map((v,i) => ({
     board: 'test',
@@ -37,6 +40,8 @@ before(done => {
 
   Thread.insertMany(newThreads, (err, docs) => {
     if (err) { throw new Error(err) }
+    gen_doc = docs[0]
+    gen_docs = docs
     console.log('Inserted multiple test Thread documents to DB')
     done()
   })
@@ -67,7 +72,7 @@ suite('Functional Tests', function() {
             assert.property(res.body, 'success', "response must include 'success' property")
             assert.property(res.body, 'error', "response must include 'error' property")
             assert.isFalse(res.body.success)
-            assert.equal(res.body.error, 'Text missing')
+            assert.equal(res.body.error, 'text missing')
             done()
           })
       })
@@ -93,7 +98,6 @@ suite('Functional Tests', function() {
     
     suite('GET', function() {
       
-      let test_doc
       test('test get request for `test` board threads', done => {
         chai.request(server)
           .get(`/api/threads/test`)
@@ -111,8 +115,9 @@ suite('Functional Tests', function() {
             assert.notProperty(res.body[0], 'reported', 'reported should not be a property of Thread')
             assert.isArray(res.body[1].replies, 'Thread replies should be of type Array')
             assert.isAtMost(res.body[1].replies.length, 3, 'replies array should only contain a max of 3 items')
+            assert.notProperty(res.body[1].replies[0], 'delete_password', 'delete_password should not be a property of replies')
+            assert.notProperty(res.body[1].replies[0], 'reported', 'reported should not be a property of replies')
             test_doc = res.body[0]
-            thread_id = test_doc._id
             done()
           })
       })
@@ -120,6 +125,63 @@ suite('Functional Tests', function() {
     
     suite('DELETE', function() {
       
+      test('test delete request with no body', done => {
+        chai.request(server)
+          .delete(`/api/threads/test`)
+          .send({})
+          .end((err, res) => {
+            assert.ok(res.status)
+            assert.property(res.body, 'success', "response must include 'success' property")
+            assert.property(res.body, 'error', "response must include 'error' property")
+            assert.isFalse(res.body.success)
+            assert.equal(res.body.error, 'thread_id should be a valid MongoID')
+            done()
+          })
+      })
+
+      test('test delete request with non-existent thread_id', done => {
+        chai.request(server)
+          .delete(`/api/threads/test`)
+          .send({thread_id: fake_id, delete_password: 'password'})
+          .end((err, res) => {
+            assert.ok(res.status)
+            assert.property(res.body, 'success', "response must include 'success' property")
+            assert.property(res.body, 'error', "response must include 'error' property")
+            assert.isFalse(res.body.success)
+            assert.equal(res.body.error, `thread_id ${fake_id} not found`)
+            done()
+          })
+      })
+
+      test('test delete request with invalid delete_password', done => {
+        chai.request(server)
+          .delete(`/api/threads/test`)
+          .send({
+            thread_id: gen_doc._id.toString(),
+            delete_password: 'wordpass'
+          })
+          .end((err, res) => {
+            assert.ok(res.status)
+            assert.equal(res.text, 'incorrect password')
+            done()
+          })
+      })
+
+      test('test delete request with valid body', done => {
+        chai.request(server)
+          .delete(`/api/threads/test`)
+          .send({
+            thread_id: gen_doc._id.toString(),
+            delete_password: 'password'
+          })
+          .end((err, res) => {
+            assert.ok(res.status)
+            assert.equal(res.text, 'success')
+            done()
+          })
+      })
+
+
     });
     
     suite('PUT', function() {
@@ -141,7 +203,25 @@ suite('Functional Tests', function() {
             assert.property(res.body, 'success')
             assert.property(res.body, 'error')
             assert.isFalse(res.body.success, 'Reponse success should be false')
-            assert.equal(res.body.error, 'Thread ID should be a valid MongoID')
+            assert.equal(res.body.error, 'thread_id should be a valid MongoID')
+            done()
+          })
+      })
+
+      test('new reply with non-existent thread_id', done => {
+        chai.request(server)
+          .post('/api/replies/test')
+          .send({
+            thread_id: fake_id,
+            delete_password: 'password',
+            text: 'first reply'
+          })
+          .end((err, res) => {
+            assert.ok(res.status)
+            assert.property(res.body, 'success')
+            assert.property(res.body, 'error')
+            assert.isFalse(res.body.success, 'Reponse success should be false')
+            assert.equal(res.body.error, `thread_id ${fake_id} not found`)
             done()
           })
       })
@@ -150,17 +230,16 @@ suite('Functional Tests', function() {
         chai.request(server)
           .post('/api/replies/test')
           .send({
-            thread_id,
+            thread_id: test_doc._id,
             delete_password: 'password',
-            text: 'first reply'
+            text: 'first test-generated reply'
           })
           .end((err, res) => {
             assert.ok(res.status)
-            console.log(res.redirects)
             assert.equal(
               res.redirects[0].split('/b/')[1],
-              `test/${thread_id}`,
-              `should be redirected to \`/b/test${thread_id}\``
+              `test/${test_doc._id}`,
+              `should be redirected to \`/b/test${test_doc._id}\``
             )
             done()
           })
@@ -169,7 +248,57 @@ suite('Functional Tests', function() {
     });
     
     suite('GET', function() {
-      
+
+      test('get request with missing thread_id', done => {
+        chai.request(server)
+          .get('/api/replies/test')
+          .query({})
+          .end((err, res) => {
+            assert.ok(res.status)
+            assert.property(res.body, 'success')
+            assert.property(res.body, 'error')
+            assert.isFalse(res.body.success, 'Reponse success should be false')
+            assert.equal(res.body.error, 'thread_id should be a valid MongoID')
+            done()
+          })
+      })
+
+      test('get request with non-existent thread_id', done => {
+        chai.request(server)
+          .get('/api/replies/test')
+          .query({thread_id: fake_id})
+          .end((err, res) => {
+            assert.ok(res.status)
+            assert.property(res.body, 'success')
+            assert.property(res.body, 'error')
+            assert.isFalse(res.body.success, 'Reponse success should be false')
+            assert.equal(res.body.error, `thread_id ${fake_id} not found`)
+            done()
+          })
+      })
+
+      test('get request with valid thread_id', done => {
+        chai.request(server)
+          .get('/api/replies/test')
+          .query({ thread_id: gen_docs[1]._id.toString() })
+          .end((err, res) => {
+            assert.ok(res.status)
+            assert.isObject(res.body)
+            assert.property(res.body, '_id', 'Response must include _id mongoID')
+            assert.property(res.body, 'text', 'Response must include text')
+            assert.property(res.body, 'created_on', 'Response must include created_on date')
+            assert.property(res.body, 'bumped_on', 'Response must include bumped_on date')
+            assert.property(res.body, 'replies', 'Response must include replies array')
+            assert.isArray(res.body.replies, 'replies value must be an array')
+            assert.property(res.body.replies[0], 'created_on')
+            assert.property(res.body.replies[0], '_id')
+            assert.property(res.body.replies[0], 'text')
+            assert.notProperty(res.body.replies[0], 'delete_password')
+            assert.notProperty(res.body.replies[0], 'reported')
+            done()
+          })
+      })
+
     });
     
     suite('PUT', function() {

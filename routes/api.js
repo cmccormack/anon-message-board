@@ -133,14 +133,30 @@ module.exports = () => {
 
 
     // ** PUT ** request
-    .put((req, res, next) => {
+    .put(bodyThreadIdVal, async (req, res, next) => {
 
       const errors = validationResult(req)
       if (!errors.isEmpty()) {
         return next(Error(errors.array()[0].msg))
       }
 
-      res.json({success:true, message: 'testing'})
+      const { thread_id } = req.body
+
+      try {
+        const thread = await Thread.findByIdAndUpdate(
+          thread_id,
+          { $set: { reported: true }},
+          { new: true }
+        )
+
+        if (!thread) {
+          throw `thread_id ${thread_id} not found`
+        }
+
+        return res.send('success')
+      } catch (err) {
+        return next(Error(err))
+      }
       
     })
 

@@ -189,6 +189,46 @@ suite('Functional Tests', function() {
     
     suite('PUT', function() {
       
+      test('request with empty body', done => {
+        chai.request(server)
+        .put(`/api/threads/test`)
+        .send({})
+        .end((err, res) => {
+          assert.ok(res.status)
+          assert.property(res.body, 'success', "response must include 'success' property")
+          assert.property(res.body, 'error', "response must include 'error' property")
+          assert.isFalse(res.body.success)
+          assert.equal(res.body.error, `thread_id should be a valid MongoID`)
+          done()
+        })
+      })
+
+      test('request with invalid thread_id', done => {
+        chai.request(server)
+        .put(`/api/threads/test`)
+        .send({thread_id: fake_id})
+        .end((err, res) => {
+          assert.ok(res.status)
+          assert.property(res.body, 'success', "response must include 'success' property")
+          assert.property(res.body, 'error', "response must include 'error' property")
+          assert.isFalse(res.body.success)
+          assert.equal(res.body.error, `thread_id ${fake_id} not found`)
+          done()
+        })
+      })
+
+      test('request with valid thread_id', done => {
+        chai.request(server)
+        .put(`/api/threads/test`)
+        .send({thread_id: gen_doc._id.toString()})
+        .end((err, res) => {
+          assert.ok(res.status)
+          assert.property(res, 'text', "response must include 'text' property")
+          assert.equal(res.text, 'success')
+          done()
+        })
+      })
+
     });
     
 

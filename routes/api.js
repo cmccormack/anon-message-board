@@ -8,12 +8,6 @@ const Thread = require('../models/Thread')
 module.exports = () => {
 
   ///////////////////////////////////////////////////////////
-  // Utility Functions
-  ///////////////////////////////////////////////////////////
-
-
-
-  ///////////////////////////////////////////////////////////
   // Validations
   ///////////////////////////////////////////////////////////
   const textVal = [
@@ -110,7 +104,7 @@ module.exports = () => {
 
 
     // ** DELETE ** request
-    .delete(bodyThreadIdVal, passVal, (req, res, next) => {
+    .delete(bodyThreadIdVal, passVal, async (req, res, next) => {
 
       const errors = validationResult(req)
       if (!errors.isEmpty()) {
@@ -120,31 +114,21 @@ module.exports = () => {
       const { board } = req.params
       const { thread_id, delete_password } = req.body
       
-      Thread.findOne({_id: thread_id, board})
-      .exec((err, thread) => {
-
-        if (err) {
-          return next(Error(err))
-        }
+      try {
+        const thread = await Thread.findOne({_id: thread_id, board})
         if (!thread) {
-          return next(Error(`thread_id ${thread_id} not found`))
+          throw `thread_id ${thread_id} not found`
         }
         if (thread.delete_password !== delete_password) {
           return res.send('incorrect password')
         }
 
-        Thread.findByIdAndDelete(thread._id, (err, thread) => {
+        await Thread.findByIdAndDelete(thread._id)
+        res.send('success')
 
-          if (err) {
-            return next(Error(err))
-          }
-          if (!thread) {
-            return next(Error(`thread_id ${thread_id} not found`))
-          }
-
-          res.send('success')
-        })
-      })
+      } catch (err) {
+        return next(Error(err))
+      }
     })
 
 

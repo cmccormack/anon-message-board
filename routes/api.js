@@ -259,7 +259,7 @@ module.exports = () => {
           }
         )
         res.send('success')
-
+ 
       } catch (err) {
         return next(Error(err))
       }
@@ -269,14 +269,41 @@ module.exports = () => {
 
 
     // ** PUT ** request
-    .put((req, res, next) => {
+    .put(bodyThreadIdVal, bodyReplyIdVal, async (req, res, next) => {
+
+      /* I can report a reply and change it's reported value to true 
+        by sending a `PUT` request to `/api/replies/{board}` and pass 
+        along the `thread_id` & `reply_id`. 
+        (Text response will be 'success') */
 
       const errors = validationResult(req)
       if (!errors.isEmpty()) {
         return next(Error(errors.array()[0].msg))
       }
 
-      res.json({success:true, message: 'testing'})
+      const { thread_id, reply_id } = req.body
+
+      try {
+        const thread = await Thread.findOneAndUpdate(
+          {
+            _id: thread_id, 
+            'replies._id': reply_id
+          },
+          { $set: { 
+            'replies.$.reported': true,
+          }},
+          { new: true }
+        )
+
+        if (!thread) {
+          throw 'thread_id or reply_id not found'
+        }
+
+        res.send('success')
+
+      } catch (err) {
+        return next(Error(err))
+      }
       
     })
 

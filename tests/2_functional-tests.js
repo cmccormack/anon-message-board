@@ -6,13 +6,13 @@
 *       (if additional are added, keep them at the very end!)
 */
 
-const chaiHttp = require('chai-http');
-const chai = require('chai');
-const assert = chai.assert;
-const server = require('../server');
+const chaiHttp = require('chai-http')
+const chai = require('chai')
+const assert = chai.assert
+const server = require('../server')
 const Thread = require('../models/Thread')
 
-chai.use(chaiHttp);
+chai.use(chaiHttp)
 
 before(done => {
   Thread.deleteMany({})
@@ -94,7 +94,7 @@ suite('Functional Tests', function() {
             done()
           })
       })
-    });
+    })
     
     suite('GET', function() {
       
@@ -121,7 +121,7 @@ suite('Functional Tests', function() {
             done()
           })
       })
-    });
+    })
     
     suite('DELETE', function() {
       
@@ -185,7 +185,7 @@ suite('Functional Tests', function() {
       })
 
 
-    });
+    })
     
     suite('PUT', function() {
       
@@ -229,10 +229,10 @@ suite('Functional Tests', function() {
         })
       })
 
-    });
+    })
     
 
-  });
+  })
   
   suite('API ROUTING FOR /api/replies/:board', function() {
     
@@ -288,7 +288,7 @@ suite('Functional Tests', function() {
           })
       })
       
-    });
+    })
     
     suite('GET', function() {
 
@@ -342,11 +342,67 @@ suite('Functional Tests', function() {
           })
       })
 
-    });
+    })
     
     suite('PUT', function() {
       
-    });
+      test('request with no body', done => {
+        chai.request(server)
+          .put(`/api/replies/test`)
+          .send({})
+          .end((err, res) => {
+            assert.ok(res.status)
+            assert.property(res.body, 'success', "response must include 'success' property")
+            assert.property(res.body, 'error', "response must include 'error' property")
+            assert.isFalse(res.body.success)
+            assert.equal(res.body.error, 'thread_id should be a valid MongoID')
+            done()
+          })
+      })
+
+      test('request with non-existent thread_id or reply_id', done => {
+        chai.request(server)
+          .put(`/api/replies/test`)
+          .send({
+            thread_id: fake_id,
+            reply_id: fake_id,
+          })
+          .end((err, res) => {
+            assert.ok(res.status)
+            assert.property(res.body, 'success', "response must include 'success' property")
+            assert.property(res.body, 'error', "response must include 'error' property")
+            assert.isFalse(res.body.success)
+            assert.equal(res.body.error, 'thread_id or reply_id not found')
+            done()
+          })
+      })
+
+      test('request with valid body', done => {
+        chai.request(server)
+          .put(`/api/replies/test`)
+          .send({
+            thread_id: gen_doc._id.toString(),
+            reply_id: gen_doc.replies[0]._id.toString(),
+          })
+          .end((err, res) => {
+            assert.ok(res.status)
+            assert.property(res, 'text', "response must include 'text' property")
+            assert.equal(res.text, 'success')
+            done()
+          })
+      })
+
+      test('validate reply reported was changed to true', done => {
+        Thread.findOne({ 'replies._id': gen_doc.replies[0]._id.toString() },
+          (err, thread) => {
+            assert.isNull(err, 'Error occured querying DB')
+            assert.exists(thread, `reply_id doesn't exist in DB`)
+            assert.isTrue(thread.replies[0].reported)
+            done()
+          })
+      })
+
+    })
     
     suite('DELETE', function() {
       
@@ -425,8 +481,8 @@ suite('Functional Tests', function() {
         })
       })
 
-    });
+    })
     
-  });
+  })
 
-});
+})

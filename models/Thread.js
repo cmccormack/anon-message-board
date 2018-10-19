@@ -8,6 +8,10 @@ const threadSchema = new mongoose.Schema({
     delete_password: { type: String, required: true },
     created_on: { type: Date, default: Date.now },
     reported: { type: Boolean, default: false },
+    _id: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: mongoose.Types.ObjectId
+    },
   }],
   created_on: { type: Date, default: Date.now },
   bumped_on: { type: Date, default: Date.now },

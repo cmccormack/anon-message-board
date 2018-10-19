@@ -162,23 +162,26 @@ suite('Functional Tests', function() {
           })
           .end((err, res) => {
             assert.ok(res.status)
+            assert.property(res, 'text', 'Response must include `text` property')
             assert.equal(res.text, 'incorrect password')
             done()
           })
-      })
-
+        })
+        
       test('test delete request with valid body', done => {
         chai.request(server)
-          .delete(`/api/threads/test`)
-          .send({
-            thread_id: gen_doc._id.toString(),
-            delete_password: 'password'
-          })
-          .end((err, res) => {
-            assert.ok(res.status)
-            assert.equal(res.text, 'success')
-            done()
-          })
+        .delete(`/api/threads/test`)
+        .send({
+          thread_id: gen_doc._id.toString(),
+          delete_password: 'password'
+        })
+        .end((err, res) => {
+          assert.ok(res.status)
+          assert.property(res, 'text', 'Response must include `text` property')
+          assert.equal(res.text, 'success')
+          gen_doc = gen_docs[1]
+          done()
+        })
       })
 
 
@@ -307,6 +310,81 @@ suite('Functional Tests', function() {
     
     suite('DELETE', function() {
       
+      test('request with no body', done => {
+  
+        chai.request(server)
+          .delete(`/api/replies/test`)
+          .send({})
+          .end((err, res) => {
+            assert.ok(res.status)
+            assert.property(res.body, 'success', "response must include 'success' property")
+            assert.property(res.body, 'error', "response must include 'error' property")
+            assert.isFalse(res.body.success)
+            assert.equal(res.body.error, 'thread_id should be a valid MongoID')
+            done()
+          })
+      })
+
+      test('request with non-existent thread_id or reply_id', done => {
+        chai.request(server)
+          .delete(`/api/replies/test`)
+          .send({
+            thread_id: fake_id,
+            reply_id: fake_id,
+            delete_password: 'password'
+          })
+          .end((err, res) => {
+            assert.ok(res.status)
+            assert.property(res.body, 'success', "response must include 'success' property")
+            assert.property(res.body, 'error', "response must include 'error' property")
+            assert.isFalse(res.body.success)
+            assert.equal(res.body.error, 'thread_id or reply_id not found')
+            done()
+          })
+      })
+
+      test('request with invalid delete_password', done => {
+        chai.request(server)
+          .delete(`/api/replies/test`)
+          .send({
+            thread_id: gen_doc._id.toString(),
+            reply_id: gen_doc.replies[0]._id.toString(),
+            delete_password: 'wordpass'
+          })
+          .end((err, res) => {
+            assert.ok(res.status)
+            assert.property(res, 'text', 'Response must include `text` property')
+            assert.equal(res.text, 'incorrect password')
+            done()
+          })
+        })
+        
+      test('request with valid body', done => {
+        chai.request(server)
+        .delete(`/api/replies/test`)
+        .send({
+          thread_id: gen_doc._id.toString(),
+          reply_id: gen_doc.replies[0]._id.toString(),
+          delete_password: 'password'
+        })
+        .end(async(err, res) => {
+          assert.ok(res.status)
+          assert.property(res, 'text', 'Response must include `text` property')
+          assert.equal(res.text, 'success')
+          done()
+        })
+      })
+
+      test('validate text was deleted', done => {
+        Thread.findOne({'replies._id': gen_doc.replies[0]._id.toString()},
+        (err, thread) => {
+          assert.isNull(err, 'Error occured querying DB')
+          assert.exists(thread, `reply_id doesn't exist`)
+          assert.equal(thread.replies[0].text, '[deleted]')
+          done()
+        })
+      })
+
     });
     
   });

@@ -1,7 +1,6 @@
 const router = require("express").Router()
-const { body, param, query, validationResult, } = require('express-validator/check')
-const { sanitizeQuery, sanitizeBody, sanitizeParam } = require('express-validator/filter')
-const fetch = require('node-fetch')
+const { body, query, validationResult, } = require('express-validator/check')
+const { sanitizeBody } = require('express-validator/filter')
 const Thread = require('../models/Thread')
 
 
@@ -39,14 +38,20 @@ module.exports = () => {
     sanitizeBody('delete_password').trim(),
   ]
 
-  const idVal = [
+  const bodyThreadIdVal = [
+    body('thread_id')
+      .trim()
+      .isMongoId()
+      .withMessage('thread_id should be a valid MongoID')
+  ]
+  const bodyReplyIdVal = [
     body('thread_id')
       .trim()
       .isMongoId()
       .withMessage('thread_id should be a valid MongoID')
   ]
 
-  const queryIdVal = [
+  const queryThreadIdVal = [
     query('thread_id')
       .trim()
       .isMongoId()
@@ -105,7 +110,7 @@ module.exports = () => {
 
 
     // ** DELETE ** request
-    .delete(idVal, passVal, (req, res, next) => {
+    .delete(bodyThreadIdVal, passVal, (req, res, next) => {
 
       const errors = validationResult(req)
       if (!errors.isEmpty()) {
@@ -117,6 +122,7 @@ module.exports = () => {
       
       Thread.findOne({_id: thread_id, board})
       .exec((err, thread) => {
+
         if (err) {
           return next(Error(err))
         }
@@ -127,17 +133,17 @@ module.exports = () => {
           return res.send('incorrect password')
         }
 
-        Thread.findByIdAndDelete(thread._id)
-          .exec((err, thread) => {
-            if (err) {
-              return next(Error(err))
-            }
-            if (!thread) {
-              return next(Error(`thread_id ${thread_id} not found`))
-            }
+        Thread.findByIdAndDelete(thread._id, (err, thread) => {
 
-            res.send('success')
-          })
+          if (err) {
+            return next(Error(err))
+          }
+          if (!thread) {
+            return next(Error(`thread_id ${thread_id} not found`))
+          }
+
+          res.send('success')
+        })
       })
     })
 
@@ -161,7 +167,7 @@ module.exports = () => {
   router.route('/replies/:board')
 
     // ** POST ** request
-    .post(idVal, textVal, passVal, async (req, res, next) => {
+    .post(bodyThreadIdVal, textVal, passVal, async (req, res, next) => {
 
       const errors = validationResult(req)
       if (!errors.isEmpty()) {
@@ -192,7 +198,7 @@ module.exports = () => {
 
 
     // ** GET ** request with query thread_id
-    .get(queryIdVal, (req, res, next) => {
+    .get(queryThreadIdVal, (req, res, next) => {
       
       const { board } = req.params
       const { thread_id } = req.query
@@ -222,14 +228,42 @@ module.exports = () => {
 
 
     // ** DELETE ** request
-    .delete((req, res, next) => {
+    .delete(bodyThreadIdVal, bodyReplyIdVal, passVal, async (req, res, next) => {
 
       const errors = validationResult(req)
       if (!errors.isEmpty()) {
         return next(Error(errors.array()[0].msg))
       }
 
-      res.json({success:true, message: 'testing'})
+      const { thread_id, reply_id, delete_password } = req.body
+
+      try {
+        const thread = await Thread.findOne({
+          _id: thread_id,
+          'replies._id': reply_id,
+        })
+
+        if (!thread) {
+          throw 'thread_id or reply_id not found'
+        }
+        if (thread.delete_password !== delete_password) {
+          return res.send('incorrect password')
+        }
+
+        await Thread.updateOne({
+            _id: thread_id,
+            'replies._id': reply_id
+          },
+          {
+            'replies.$.text': '[deleted]'
+          }
+        )
+        res.send('success')
+
+      } catch (err) {
+        return next(Error(err))
+      }
+
       
     })
 

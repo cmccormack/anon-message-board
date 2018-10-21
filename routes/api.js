@@ -59,7 +59,10 @@ module.exports = () => {
   ///////////////////////////////////////////////////////////
   router.route('/threads/:board')
 
-    // ** POST ** request
+    /**
+     * POST Request
+     * @responds with new Thread object
+    */
     .post(textVal, passVal, async (req, res, next) => {
 
       const errors = validationResult(req)
@@ -75,8 +78,9 @@ module.exports = () => {
           if (err) {
             return next(Error(err))
           }
-
-          res.redirect(`/b/${req.params.board}`)
+          thread = thread.toObject()
+          delete thread.delete_password
+          res.json({success: true, data: thread})
         })
       })
 
@@ -171,7 +175,6 @@ module.exports = () => {
 
       const errors = validationResult(req)
       if (!errors.isEmpty()) {
-        // console.log(errors.array())
         return next(Error(errors.array()[0].msg))
       }
 
@@ -192,7 +195,9 @@ module.exports = () => {
           return next(Error(`thread_id ${thread_id} not found`))
         }
 
-        res.redirect(`/b/${req.params.board}/${thread_id}`)
+        thread = thread.toObject()
+        delete thread.delete_password
+          res.json({ success: true, data: thread })
       })
     })
 

@@ -86,11 +86,19 @@ suite('Functional Tests', function() {
           })
           .end((err, res) => {
             assert.ok(res.status)
-            assert.equal(
-              res.redirects[0].split('/b/')[1],
-              'test',
-              'should be redirected to `/b/test`'
-            )
+            assert.property(res.body, 'success', "response must include 'success' property")
+            assert.property(res.body, 'data', "response must include 'data' property")
+            assert.isTrue(res.body.success)
+            assert.isObject(res.body.data)
+            assert.property(res.body.data, '_id')
+            assert.property(res.body.data, 'text')
+            assert.property(res.body.data, 'created_on')
+            assert.property(res.body.data, 'bumped_on')
+            assert.property(res.body.data, 'board')
+            assert.property(res.body.data, 'reported')
+            assert.property(res.body.data, 'replies')
+            assert.notProperty(res.body.data, 'delete_password')
+            assert.isArray(res.body.data.replies)
             done()
           })
       })
@@ -279,11 +287,21 @@ suite('Functional Tests', function() {
           })
           .end((err, res) => {
             assert.ok(res.status)
-            assert.equal(
-              res.redirects[0].split('/b/')[1],
-              `test/${test_doc._id}`,
-              `should be redirected to \`/b/test${test_doc._id}\``
-            )
+            assert.property(res.body, 'success', "response must include 'success' property")
+            assert.property(res.body, 'data', "response must include 'data' property")
+            assert.isTrue(res.body.success)
+            assert.isObject(res.body.data)
+            const reply = res.body.data.replies[0]
+            assert.isArray(res.body.data.replies)
+            assert.property(reply, 'created_on')
+            assert.property(reply, 'reported')
+            assert.property(reply, '_id')
+            assert.property(reply, 'text')
+            assert.notProperty(reply, 'delete_text')
+            assert.equal(reply.text, 'first test-generated reply')
+            assert.approximately(new Date(reply.created_on).getTime(), Date.now(), 2000)
+            assert.equal(reply.text, 'first test-generated reply')
+            assert.equal(reply.text, 'first test-generated reply')
             done()
           })
       })

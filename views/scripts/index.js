@@ -14,7 +14,7 @@ const displayResponse = (output, response) => {
   output.classList.remove('hidden')
 }
 
-const fetchJSON = (endpoint, method, body = undefined) => (
+const fetchJSON = (endpoint, method="GET", body=undefined) => (
   fetch(endpoint, {
     method,
     headers: { "Content-Type": "application/json; charset=utf-8" },
@@ -33,13 +33,18 @@ const fetchJSON = (endpoint, method, body = undefined) => (
 document.getElementById('new-thread-form').addEventListener('submit', e => {
   e.preventDefault()
   const {target:form} = e
-  const { board, text, password, method } = form
+  const { board, text, delete_password, method } = form
   const endpoint = form.getAttribute('action').replace(':board', board.value)
   const output = form.querySelector('.output')
   const body = {
-    text,
-    delete_password: password
+    text: text.value,
+    delete_password: delete_password.value,
   }
 
-  fetchJSON(endpoint, method, body).then(displayResponse.bind(null, output))
+  fetchJSON(endpoint, method, body).then(({data, success, error}) => {
+    if (success) {
+      displayResponse(output, error)
+    }
+    window.location = '/b/' + data.board
+  }).catch(err => displayResponse(output, err.message))
 })

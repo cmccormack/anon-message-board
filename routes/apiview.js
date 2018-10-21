@@ -12,30 +12,16 @@ module.exports = () => {
   // View Board Threads
   ///////////////////////////////////////////////////////////
   router.route('/:board')
-
-    // ** GET ** request
     .get((req, res, next) => {
-
-      const errors = validationResult(req)
-      if (!errors.isEmpty()) {
-        return next(Error(errors.array()[0].msg))
-      }
-
-      res.json({success:true, message: 'testing /b/{board}'})
+      const { board } = req.params
+      res.render('board', {title: board})
       
     })
 
   router.route('/:board/:thread_id')
-
-    // ** GET ** request
     .get((req, res, next) => {
 
-      const errors = validationResult(req)
-      if (!errors.isEmpty()) {
-        return next(Error(errors.array()[0].msg))
-      }
-
-      res.json({ success: true, message: 'testing /b/{board}/{thread}' })
+      res.render('thread', { success: true })
 
     })
 

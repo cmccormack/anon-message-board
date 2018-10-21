@@ -57,25 +57,20 @@ html
                         label(for="new-thread-board-input") Board
                             span  - Required
                         input#new-thread-board-input(
-                            type="text" placeholder="random" name="board" minLength="1")
+                            type="text" placeholder="What's going on this weekend?" name="board" minLength="1")
                     div.input-row
                         label(for="new-thread-text-input") Thread Text
                             span  - Required
                         textarea#new-thread-text-input(
-                            type="text"
-                            placeholder="What's happening this weekend?"
-                            name="text"
-                            minLength="1"
-                            rows="5"
-                    )
+                            type="text" placeholder="random" name="text" minLength="1")
                     div.input-row
                         label(for="new-thread-password-input") Deletion Password
                             span  - Required
                         input#new-thread-password-input(
-                            type="text" placeholder="monkey123" name="delete_password" minLength="1")
+                            type="text" placeholder="monkey123" name="password" minLength="1")
                     button.submit-btn(type="submit") Submit
 
                     div.input-row
                         pre.output.hidden
 
-        script(src="scripts/index.js")
+        script(src="scripts/scripts.js")

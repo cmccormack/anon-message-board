@@ -33,7 +33,6 @@ body, html {
     padding: 1.5rem;
     border-radius: 4px;
     margin-bottom: 30px;
-  
   }
   
   .section-title {
@@ -101,7 +100,6 @@ body, html {
     color: #f8c406;
     font-size: 1.6rem;
     font-weight: 200;
-    /* text-transform: capitalize; */
     text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
   }
 
@@ -147,6 +145,49 @@ body, html {
   }
   /* End Form Styles */
 
+  /* Start Thread Styles */
+  .thread {
+    border: 1px solid darkgreen;
+    background-color: rgb(89, 212, 206);
+    padding: .6rem;
+    padding-top: 0;
+    border-radius: 4px;
+    margin-bottom: 30px;
+  }
+
+
+  .info-item {
+    font-size: .7rem;
+    margin-right: 1rem;
+  }
+
+  .thread-report-btn {
+    display: inline-block;
+    margin: .5rem 0;
+    background-color: gold;
+    border-radius: 4px;
+  }
+
+  .thread-text {
+    font-size: 1.2rem;
+    font-weight: 200;
+    margin: .4rem;
+    margin-bottom: 1rem;
+  }
+
+  .thread-replies {
+    background-color: paleturquoise;
+    border: 1px solid darkgreen;
+    border-radius: 4px;
+    margin-left: 2rem;
+    margin-right: 1rem;
+    padding: .4rem;
+  }
+
+
+
+
+   /* End Thread Styles */
 
   .hidden {
     visibility: hidden;

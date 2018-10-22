@@ -1,3 +1,5 @@
+const board = window.location.pathname.split('/')[2]
+console.log(board)
 const forms = document.querySelectorAll('form')
 constoutputs = document.querySelectorAll('.output')
 forms.forEach(form => {
@@ -42,9 +44,30 @@ document.getElementById('new-thread-form').addEventListener('submit', e => {
   }
 
   fetchJSON(endpoint, method, body).then(({ data, success, error }) => {
-    if (success) {
-      displayResponse(output, error)
-    }
     location.reload()
   }).catch(err => displayResponse(output, err.message))
+})
+
+
+document.querySelectorAll('.thread-report-btn').forEach(el => {
+  el.addEventListener('click', e => {
+    const { value: thread_id } = e.target
+    fetchJSON(`/api/threads/${board}`, 'PUT', {thread_id}).then(res => {
+      if (res === 'success') {
+        alert(`id ${thread_id} has been reported.`)
+      }
+    })
+  })
+})
+
+document.querySelectorAll('.reply-report-btn').forEach(el => {
+  el.addEventListener('click', e => {
+    const { value: thread_id } = e.target
+    console.log('reported!', e.target.value)
+    fetchJSON(`/api/replies/${board}`, 'PUT', { thread_id }).then(res => {
+      if (res === 'success') {
+        alert(`id ${thread_id} has been reported.`)
+      }
+    })
+  })
 })

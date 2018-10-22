@@ -1,50 +1,65 @@
 html
-    head
-        title /b/#{title}
-        meta(name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no")
-        meta(name="author" content="Chris McCormack")
+  head
+    title /b/#{title}
+    meta(name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no")
+    meta(name="author" content="Chris McCormack")
 
-        link(rel="stylesheet" type="text/css" href="/styles/styles.css")
-        link(rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500")
+    link(rel="stylesheet" type="text/css" href="/styles/styles.css")
+    link(rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500")
 
-        link(rel='apple-touch-icon', sizes='180x180', href='/images/apple-touch-icon.png')
-        link(rel='icon', type='image/png', sizes='32x32', href='/images/favicon-32x32.png')
-        link(rel='icon', type='image/png', sizes='16x16', href='/images/favicon-16x16.png')
-        link(rel='manifest', href='/images/site.webmanifest')
-        link(rel='mask-icon', href='/images/safari-pinned-tab.svg', color='#5bbad5')
-        link(rel='shortcut icon', href='/images/favicon.ico')
-        meta(name='msapplication-TileColor', content='#da532c')
-        meta(name='msapplication-config', content='/images/browserconfig.xml')
-        meta(name='theme-color', content='#ffffff')
+    link(rel='apple-touch-icon', sizes='180x180', href='/images/apple-touch-icon.png')
+    link(rel='icon', type='image/png', sizes='32x32', href='/images/favicon-32x32.png')
+    link(rel='icon', type='image/png', sizes='16x16', href='/images/favicon-16x16.png')
+    link(rel='manifest', href='/images/site.webmanifest')
+    link(rel='mask-icon', href='/images/safari-pinned-tab.svg', color='#5bbad5')
+    link(rel='shortcut icon', href='/images/favicon.ico')
+    meta(name='msapplication-TileColor', content='#da532c')
+    meta(name='msapplication-config', content='/images/browserconfig.xml')
+    meta(name='theme-color', content='#ffffff')
 
-    body
-        header
-            h1 Welcome to /b/#{title}
+  body
+    header
+      h1 Welcome to /b/#{title}
 
-        main
-            section#submit_thread
-                form#new-thread-form(action=`/api/threads/${title}` method="POST")
-                    span.form-title Submit a new thread:
-                    div.input-row
-                        label(for="new-thread-text-input") Thread Text
-                            span  - Required
-                        textarea#new-thread-text-input(
-                            type="text"
-                            placeholder="random"
-                            name="text"
-                            minLength="1"
-                            rows="4"
-                        )
-                    div.input-row
-                        label(for="new-thread-password-input") Deletion Password
-                            span  - Required
-                        input#new-thread-password-input(
-                            type="text" placeholder="monkey123" name="password" minLength="1")
-                    button.submit-btn(type="submit") Submit
+    main
+      section#submit_thread
+        form#new-thread-form(action=`/api/threads/${title}` method="POST")
+          span.form-title Submit a new thread:
+          div.input-row
+            label(for="new-thread-text-input") Thread Text
+                span  - Required
+            textarea#new-thread-text-input(
+                type="text"
+                placeholder="random"
+                name="text"
+                minLength="1"
+                rows="4"
+            )
+          div.input-row
+            label(for="new-thread-password-input") Deletion Password
+                span  - Required
+            input#new-thread-password-input(
+                type="text" placeholder="monkey123" name="password" minLength="1")
+          button.submit-btn(type="submit") Submit
 
-                    div.input-row
-                        pre.output.hidden
+          div.input-row
+            pre.output.hidden
 
-            section#view_threads
+      section#view_threads
+        each thread in threads
+          div.thread
+            div.thread-info-row(id=thread._id)
+              span.info-item.thread-id id: #{thread._id}
+              span.info-item.thread-bumped-on last bumped: #{thread.bumped_on}
+              button.thread-report-btn(value=thread._id) Report
+            div.thread-text= thread.text
+            div.thread-replies
+              each reply in thread.replies
+                div.reply-info-row(id=reply._id)
+                  span.info-item.reply-id id: #{reply._id}
+                  span.info-item.reply-cretaed created: #{reply.created_on}
+                  button.reply-report-btn(value=reply._id) Report
 
-        script(src="/scripts/board.js")
+            div=JSON.stringify(thread)
+
+    script(src="/scripts/board.js")

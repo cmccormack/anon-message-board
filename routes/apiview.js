@@ -5,6 +5,7 @@ const ThreadHandler = require('../controllers/threadHandler')
 module.exports = () => {
 
   const threadHandler = new ThreadHandler()
+
   ///////////////////////////////////////////////////////////
   // View Board Threads
   ///////////////////////////////////////////////////////////

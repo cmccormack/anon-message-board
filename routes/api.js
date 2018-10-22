@@ -1,57 +1,24 @@
 const router = require("express").Router()
-const { body, query, validationResult, } = require('express-validator/check')
-const { sanitizeBody } = require('express-validator/filter')
+const { validationResult, } = require('express-validator/check')
 const Thread = require('../models/Thread')
-
+const ThreadHandler = require('../controllers/threadHandler')
+const ReplyHandler = require('../controllers/replyHandler')
+const {
+  textVal,
+  passVal,
+  bodyThreadIdVal,
+  bodyReplyIdVal,
+  queryThreadIdVal
+} = require('../controllers/validations')
 
 
 module.exports = () => {
 
   ///////////////////////////////////////////////////////////
-  // Validations
+  // Initialize Controllers
   ///////////////////////////////////////////////////////////
-  const textVal = [
-    body('text')
-      .trim()
-      .isLength({min: 1})
-      .withMessage('text missing')
-      .isAscii()
-      .withMessage('text should include only valid ascii characters'),
-
-    sanitizeBody('text').trim(),
-  ]
-
-  const passVal = [
-    body('delete_password')
-      .trim()
-      .isLength({min: 1})
-      .withMessage('delete_password missing')
-      .isAscii()
-      .withMessage('delete_password should include only valid ascii characters'),
-
-    sanitizeBody('delete_password').trim(),
-  ]
-
-  const bodyThreadIdVal = [
-    body('thread_id')
-      .trim()
-      .isMongoId()
-      .withMessage('thread_id should be a valid MongoID')
-  ]
-  const bodyReplyIdVal = [
-    body('thread_id')
-      .trim()
-      .isMongoId()
-      .withMessage('thread_id should be a valid MongoID')
-  ]
-
-  const queryThreadIdVal = [
-    query('thread_id')
-      .trim()
-      .isMongoId()
-      .withMessage('thread_id should be a valid MongoID')
-  ]
-
+  const threadHandler = new ThreadHandler()
+  const replyHandler = new ReplyHandler()
 
 
   ///////////////////////////////////////////////////////////
@@ -61,108 +28,33 @@ module.exports = () => {
 
     /**
      * POST Request
+     * Creates a new thread
      * @responds with new Thread object
     */
-    .post(textVal, passVal, async (req, res, next) => {
+    .post(textVal, passVal, threadHandler.postThread)
 
-      const errors = validationResult(req)
-      if (!errors.isEmpty()) {
-        return next(Error(errors.array()[0].msg))
-      }
-
-      const { board } = req.params
-      const { delete_password, text } = req.body
-
-      new Thread({ text, delete_password, board })
-        .save((err, thread) => {
-          if (err) {
-            return next(Error(err))
-          }
-          thread = thread.toObject()
-          delete thread.delete_password
-          res.json({success: true, data: thread})
-        })
-      })
+    /**
+     * GET Request
+     * @responds an array of the most recent 10 bumped
+     *  threads on the board with only the most recent 3 replies
+    */
+    .get(threadHandler.getRecentThreads)
 
 
-    // ** GET ** request
-    .get((req, res, next) => {
-
-      const { board } = req.params
-
-      Thread.find({board})
-      .select({ reported: 0, delete_password: 0, __v: 0, board: 0 })
-      .sort({'bumped_on': -1})
-      .limit(10)
-      .exec((err, threads) => {
-        if (err) { return next(Error(err)) }
-
-        res.json(threads.map(thread => {
-          thread = thread.toObject()
-          thread.replies = thread.replies.slice(0, 3)
-            .map(({delete_password, reported, ...reply}) => reply)
-          return thread
-        }))
-      })
-    })
+    /**
+     * DELETE Request
+     * Deletes a thread
+     * @responds with String containing success or an error
+    */
+    .delete(bodyThreadIdVal, passVal, threadHandler.deleteThread)
 
 
-    // ** DELETE ** request
-    .delete(bodyThreadIdVal, passVal, async (req, res, next) => {
-
-      const errors = validationResult(req)
-      if (!errors.isEmpty()) {
-        return next(Error(errors.array()[0].msg))
-      }
-
-      const { board } = req.params
-      const { thread_id, delete_password } = req.body
-      
-      try {
-        const thread = await Thread.findOne({_id: thread_id, board})
-        if (!thread) {
-          throw `thread_id ${thread_id} not found`
-        }
-        if (thread.delete_password !== delete_password) {
-          return res.send('incorrect password')
-        }
-
-        await Thread.findByIdAndDelete(thread._id)
-        res.send('success')
-
-      } catch (err) {
-        return next(Error(err))
-      }
-    })
-
-
-    // ** PUT ** request
-    .put(bodyThreadIdVal, async (req, res, next) => {
-
-      const errors = validationResult(req)
-      if (!errors.isEmpty()) {
-        return next(Error(errors.array()[0].msg))
-      }
-
-      const { thread_id } = req.body
-
-      try {
-        const thread = await Thread.findByIdAndUpdate(
-          thread_id,
-          { $set: { reported: true }},
-          { new: true }
-        )
-
-        if (!thread) {
-          throw `thread_id ${thread_id} not found`
-        }
-
-        return res.send('success')
-      } catch (err) {
-        return next(Error(err))
-      }
-      
-    })
+    /**
+     * PUT Request
+     * Sets a threads reported value to true
+     * @responds with String containing success or an error
+    */
+    .put(bodyThreadIdVal, threadHandler.reportThread)
 
 
   ///////////////////////////////////////////////////////////
@@ -170,147 +62,34 @@ module.exports = () => {
   ///////////////////////////////////////////////////////////
   router.route('/replies/:board')
 
-    // ** POST ** request
-    .post(bodyThreadIdVal, textVal, passVal, async (req, res, next) => {
+    /**
+     * POST Request
+     * Creates a new reply to a thread
+     * @responds with object containing success and data or error
+    */
+    .post(bodyThreadIdVal, textVal, passVal, replyHandler.postReply)
 
-      const errors = validationResult(req)
-      if (!errors.isEmpty()) {
-        return next(Error(errors.array()[0].msg))
-      }
+    /**
+     * GET Request
+     * Gets a thread and all of its replies
+     * @responds with object containing success and data or error
+    */
+    .get(queryThreadIdVal, replyHandler.getThreadWithReplies)
 
-      const { board } = req.params
-      const { delete_password, text, thread_id } = req.body
-      const update = {
-        $push: { replies: { text, delete_password } },
-        bumped_on: new Date()
-      }
+    /**
+     * DELETE Request
+     * Deletes reply by setting text to '[deleted]'
+     * @responds with String containing success or an error
+    */
+    .delete(bodyThreadIdVal, bodyReplyIdVal, passVal, replyHandler.deleteReply)
 
-      Thread.findOneAndUpdate(
-        { _id: thread_id, board },
-        update, {new: true}, (err, thread) => {
-        if (err) {
-          return next(Error(err))
-        }
-        if (!thread) {
-          return next(Error(`thread_id ${thread_id} not found`))
-        }
-
-        thread = thread.toObject()
-        delete thread.delete_password
-          res.json({ success: true, data: thread })
-      })
-    })
-
-
-    // ** GET ** request with query thread_id
-    .get(queryThreadIdVal, (req, res, next) => {
-      
-      const { board } = req.params
-      const { thread_id } = req.query
-
-      const errors = validationResult(req)
-      if (!errors.isEmpty()) {
-        return next(Error(errors.array()[0].msg))
-      }
-
-
-      Thread.findOne({_id: thread_id, board})
-        .select({ delete_password: 0, __v: 0, reported: 0, board: 0 })
-        .exec((err, thread) => {
-          if (err) {
-            return next(Error(err))
-          }
-          if (!thread) {
-            return next(Error(`thread_id ${thread_id} not found`))
-          }
-
-          thread = thread.toObject()
-          thread.replies = thread.replies
-            .map(({delete_password, reported, ...reply}) => reply)
-          res.json(thread)
-        })
-    })
-
-
-    // ** DELETE ** request
-    .delete(bodyThreadIdVal, bodyReplyIdVal, passVal, async (req, res, next) => {
-
-      const errors = validationResult(req)
-      if (!errors.isEmpty()) {
-        return next(Error(errors.array()[0].msg))
-      }
-
-      const { thread_id, reply_id, delete_password } = req.body
-
-      try {
-        const thread = await Thread.findOne({
-          _id: thread_id,
-          'replies._id': reply_id,
-        })
-
-        if (!thread) {
-          throw 'thread_id or reply_id not found'
-        }
-        if (thread.delete_password !== delete_password) {
-          return res.send('incorrect password')
-        }
-
-        await Thread.updateOne({
-            _id: thread_id,
-            'replies._id': reply_id
-          },
-          {
-            'replies.$.text': '[deleted]'
-          }
-        )
-        res.send('success')
- 
-      } catch (err) {
-        return next(Error(err))
-      }
-
-      
-    })
-
-
-    // ** PUT ** request
-    .put(bodyThreadIdVal, bodyReplyIdVal, async (req, res, next) => {
-
-      /* I can report a reply and change it's reported value to true 
-        by sending a `PUT` request to `/api/replies/{board}` and pass 
-        along the `thread_id` & `reply_id`. 
-        (Text response will be 'success') */
-
-      const errors = validationResult(req)
-      if (!errors.isEmpty()) {
-        return next(Error(errors.array()[0].msg))
-      }
-
-      const { thread_id, reply_id } = req.body
-
-      try {
-        const thread = await Thread.findOneAndUpdate(
-          {
-            _id: thread_id, 
-            'replies._id': reply_id
-          },
-          { $set: { 
-            'replies.$.reported': true,
-          }},
-          { new: true }
-        )
-
-        if (!thread) {
-          throw 'thread_id or reply_id not found'
-        }
-
-        res.send('success')
-
-      } catch (err) {
-        return next(Error(err))
-      }
-      
-    })
+    /**
+     * PUT Request
+     * Sets a reply's reported value to true
+     * @responds with String containing success or an error
+    */
+    .put(bodyThreadIdVal, bodyReplyIdVal, replyHandler.reportReply)
+    
 
   return router
   

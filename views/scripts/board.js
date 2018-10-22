@@ -1,5 +1,5 @@
-forms = document.querySelectorAll('form')
-outputs = document.querySelectorAll('.output')
+const forms = document.querySelectorAll('form')
+constoutputs = document.querySelectorAll('.output')
 forms.forEach(form => {
   form.addEventListener('submit', e => {
     outputs.forEach(output => {
@@ -41,5 +41,10 @@ document.getElementById('new-thread-form').addEventListener('submit', e => {
     delete_password: password.value,
   }
 
-  fetchJSON(endpoint, method, body).then(displayResponse.bind(null, output))
+  fetchJSON(endpoint, method, body).then(({ data, success, error }) => {
+    if (success) {
+      displayResponse(output, error)
+    }
+    location.reload()
+  }).catch(err => displayResponse(output, err.message))
 })

@@ -1,20 +1,22 @@
 const router = require("express").Router()
-const { body, param, query, validationResult, } = require('express-validator/check')
-const { sanitizeQuery, sanitizeBody, sanitizeParam } = require('express-validator/filter')
-const fetch = require('node-fetch')
-const Thread = require('../models/Thread')
+const ThreadHandler = require('../controllers/threadHandler')
 
 
 module.exports = () => {
 
-
+  const threadHandler = new ThreadHandler()
   ///////////////////////////////////////////////////////////
   // View Board Threads
   ///////////////////////////////////////////////////////////
   router.route('/:board')
     .get((req, res, next) => {
       const { board } = req.params
-      res.render('board', {title: board})
+
+      threadHandler.getRecentThreads(
+        { params: {board} },
+        { json: threads => {
+          res.render('board', {title: board, threads})
+        }})
       
     })
 

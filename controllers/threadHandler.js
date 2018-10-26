@@ -22,8 +22,10 @@ function ThreadHandler(app) {
    */
   this.postThread = async (req, res, next) => {
 
+    console.log(req.params, req.body)
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
+      console.log(errors.array())
       return next(Error(errors.array()[0].msg))
     }
 

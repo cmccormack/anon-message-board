@@ -33,18 +33,26 @@ const fetchJSON = (endpoint, method="GET", body=undefined) => (
 document.getElementById('new-thread-form').addEventListener('submit', e => {
   e.preventDefault()
   const {target:form} = e
-  const { board, text, delete_password, method } = form
-  const endpoint = form.getAttribute('action').replace(':board', board.value)
   const output = form.querySelector('.output')
+  const { board, text, delete_password, method } = form
+  
+  if (!board || !text || !delete_password) {
+    return displayResponse(
+      output,
+      {success: false, error: "Missing required inputs"})
+    }
+
+  const endpoint = form.getAttribute('action').replace(':board', board.value)
   const body = {
     text: text.value,
     delete_password: delete_password.value,
   }
 
   fetchJSON(endpoint, method, body).then(({data, success, error}) => {
-    if (success) {
-      displayResponse(output, error)
-    }
+    if (!success) throw({message: error})
+
     window.location = '/b/' + data.board
-  }).catch(err => displayResponse(output, err.message))
+  }).catch(err => {
+    displayResponse(output, err.message)
+  })
 })

@@ -1,6 +1,10 @@
+* {
+  box-sizing: border-box;
+}
+
 body, html {
-    font-family: "Roboto", sans-serif;
-  }
+  font-family: "Roboto", sans-serif;
+}
   
   body {
     display: flex;
@@ -147,6 +151,8 @@ body, html {
 
   /* Start Thread Styles */
   .thread {
+    display: flex;
+    flex-direction: column;
     border: 1px solid darkgreen;
     background-color: rgb(89, 212, 206);
     padding: .6rem;
@@ -171,7 +177,7 @@ body, html {
   .thread-text {
     font-size: 1.2rem;
     font-weight: 200;
-    margin: .4rem;
+    margin: 1rem;
     margin-bottom: 1rem;
   }
 
@@ -179,11 +185,45 @@ body, html {
     background-color: paleturquoise;
     border: 1px solid darkgreen;
     border-radius: 4px;
+    margin: 1rem 0;
     margin-left: 2rem;
     margin-right: 1rem;
-    padding: .4rem;
+    padding: .6rem;
   }
 
+  .reply {
+    padding: 10px;
+    border-bottom: 1px solid darkgreen;
+  }
+
+  .reply:last-child {
+    border-bottom: none;
+  }
+
+  .reply-text {
+    margin: .8rem;
+  }
+
+  .reply-delete-row {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .reply-delete-row .reply-delete-input {
+    width: 180px;
+    border: 1px solid darkgreen;
+  }
+
+  .reply-delete-row .reply-delete-btn {
+    background: none;
+    background-color: lightsalmon;
+    border: 2px solid darkgreen;
+    margin-left: 1rem;
+  }
+
+  .new-thread-reply textarea {
+    border: 1px solid darkgreen;
+  }
 
 
 

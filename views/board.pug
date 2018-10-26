@@ -55,11 +55,20 @@ html
             div.thread-text= thread.text
             div.thread-replies
               each reply in thread.replies
-                div.reply-info-row(id=reply._id)
-                  span.info-item.reply-id id: #{reply._id}
-                  span.info-item.reply-cretaed created: #{reply.created_on}
-                  button.reply-report-btn(value=reply._id) Report
+                div.reply(id=reply._id)
+                  div.reply-info-row
+                    span.info-item.reply-id id: #{reply._id}
+                    span.info-item.reply-created #{reply.created_on}
+                    button.reply-report-btn(value=reply._id) Report
+                  div.reply-text=reply.text
+                  div.reply-delete-row
+                    input.reply-delete-input(type="text" placeholder="delete_password")
+                    button.reply-delete-btn(value=reply._id) Delete
+            
+            div.thread-replies
+              div.new-thread-reply
+                textarea(rows="4")
 
-            div=JSON.stringify(thread)
+            div=JSON.stringify(thread.replies)
 
     script(src="/scripts/board.js")

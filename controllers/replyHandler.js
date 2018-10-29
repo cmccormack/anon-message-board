@@ -29,13 +29,20 @@ function ReplyHandler(app) {
 
     const { delete_password, text, thread_id } = req.body
     const update = {
-      $push: { replies: { text, delete_password } },
+      $push: {
+        replies: {
+          $each: [{text, delete_password}],
+          $sort: { created_on: -1}
+        } 
+      },
       bumped_on: new Date()
     }
 
     Thread.findOneAndUpdate(
       { _id: thread_id, board: req.params.board },
-      update, { new: true }, (err, thread) => {
+      update,
+      { new: true, sort: {'replies.created_on': 1} },
+      (err, thread) => {
         if (err) {
           return next(Error(err))
         }
@@ -45,6 +52,7 @@ function ReplyHandler(app) {
 
         thread = thread.toObject()
         delete thread.delete_password
+        console.log(thread)
         res.json({ success: true, data: thread })
       })
   }
@@ -124,6 +132,7 @@ function ReplyHandler(app) {
    * PUT sets reported value of reply to true
    */
   this.reportReply = async (req, res, next) => {
+
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
       return next(Error(errors.array()[0].msg))

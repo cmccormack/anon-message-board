@@ -22,10 +22,10 @@ function ThreadHandler(app) {
    */
   this.postThread = async (req, res, next) => {
 
-    console.log(req.params, req.body)
+    // console.log(req.params, req.body)
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
-      console.log(errors.array())
+      // console.log(errors.array())
       return next(Error(errors.array()[0].msg))
     }
 
@@ -60,6 +60,7 @@ function ThreadHandler(app) {
 
         res.json(threads.map(thread => {
           thread = thread.toObject()
+          thread.replyCount = thread.replies.length
           thread.replies = thread.replies.slice(0, 3)
             .map(({ delete_password, reported, ...reply }) => reply)
           return thread

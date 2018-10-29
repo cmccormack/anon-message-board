@@ -176,19 +176,29 @@ body, html {
 
   .thread-text {
     font-size: 1.2rem;
-    font-weight: 200;
+    /* font-weight: 200; */
     margin: 1rem;
     margin-bottom: 1rem;
+  }
+
+  .reply-count-row {
+    text-align: right;
+    font-size: 1rem;
+    font-family: Monospace;
+    margin-right: 1rem;
+    padding: .6rem;
   }
 
   .thread-replies {
     background-color: paleturquoise;
     border: 1px solid darkgreen;
     border-radius: 4px;
-    margin: 1rem 0;
+    margin-bottom: 1rem;
     margin-left: 2rem;
     margin-right: 1rem;
     padding: .6rem;
+    display: flex;
+    flex-direction: column;
   }
 
   .reply {
@@ -204,25 +214,41 @@ body, html {
     margin: .8rem;
   }
 
-  .reply-delete-row {
+  .reply-delete-row, .quick-reply-submit-row {
     display: flex;
     justify-content: flex-end;
   }
 
-  .reply-delete-row .reply-delete-input {
+  .reply-delete-row .reply-delete-input,
+  .quick-reply .quick-reply-delete-input {
     width: 180px;
     border: 1px solid darkgreen;
   }
 
-  .reply-delete-row .reply-delete-btn {
+  .reply-delete-row .reply-delete-btn,
+  .quick-reply-submit-btn {
     background: none;
     background-color: lightsalmon;
     border: 2px solid darkgreen;
     margin-left: 1rem;
   }
 
-  .new-thread-reply textarea {
+  .quick-reply {
+    padding: .6rem;
+  }
+
+  .quick-reply-title {
+    font-size: 1.3rem;
+  }
+
+  .quick-reply textarea {
     border: 1px solid darkgreen;
+    margin: .6rem;
+    margin-left: auto;
+  }
+
+  .quick-reply .quick-reply-submit-btn {
+    background-color: white;
   }
 
 

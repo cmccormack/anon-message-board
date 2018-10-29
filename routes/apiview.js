@@ -16,7 +16,7 @@ module.exports = () => {
       threadHandler.getRecentThreads(
         { params: {board} },
         { json: threads => {
-          res.render('board', {title: board, threads})
+          res.render('board', {board, threads})
         }})
       
     })

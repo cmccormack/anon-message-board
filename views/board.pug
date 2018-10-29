@@ -1,6 +1,6 @@
 html
   head
-    title /b/#{title}
+    title /b/#{board}
     meta(name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no")
     meta(name="author" content="Chris McCormack")
 
@@ -19,11 +19,11 @@ html
 
   body
     header
-      h1 Welcome to /b/#{title}
+      h1 Welcome to /b/#{board}
 
     main
       section#submit_thread
-        form#new-thread-form(action=`/api/threads/${title}` method="POST")
+        form#new-thread-form(action=`/api/threads/${board}` method="POST")
           span.form-title Submit a new thread:
           div.input-row
             label(for="new-thread-text-input") Thread Text
@@ -53,22 +53,44 @@ html
               span.info-item.thread-bumped-on last bumped: #{thread.bumped_on}
               button.thread-report-btn(value=thread._id) Report
             div.thread-text= thread.text
-            div.thread-replies
-              each reply in thread.replies
-                div.reply(id=reply._id)
-                  div.reply-info-row
-                    span.info-item.reply-id id: #{reply._id}
-                    span.info-item.reply-created #{reply.created_on}
-                    button.reply-report-btn(value=reply._id) Report
-                  div.reply-text=reply.text
-                  div.reply-delete-row
-                    input.reply-delete-input(type="text" placeholder="delete_password")
-                    button.reply-delete-btn(value=reply._id) Delete
+
+            if thread.replies.length > 0
+              div.reply-count-row
+                span.reply-count= `${thread.replyCount} replies total `
+                 = `(${thread.replyCount - thread.replies.length} hidden)`
+                a(href=`/b/${board}/${thread._id}`)
+              div.thread-replies
+                each reply in thread.replies
+                  div.reply(id=reply._id)
+                    div.reply-info-row
+                      span.info-item.reply-id id: #{reply._id}
+                      span.info-item.reply-created #{reply.created_on}
+                      button.reply-report-btn(value=`${JSON.stringify({reply, thread})}`) Report
+                    div.reply-text=reply.text
+                    div.reply-delete-row
+                      input.reply-delete-input(type="text" placeholder="delete_password")
+                      button.reply-delete-btn(value=reply._id) Delete
             
             div.thread-replies
-              div.new-thread-reply
-                textarea(rows="4")
-
-            div=JSON.stringify(thread.replies)
+              div.quick-reply
+                form.quick-reply-form(action=`/api/replies/${board}` method="POST")
+                  div.quick-reply-title Add a new reply!
+                  textarea.quick-reply-input(
+                    type="text"
+                    placeholder="Quick reply.."
+                    name="text"
+                    minLength="1"
+                    rows="4"
+                  )
+                  div.quick-reply-submit-row
+                    input.quick-reply-delete-input(
+                      name="delete_password"
+                      placeholder="delete_password"
+                      type="text"
+                    )
+                    button.quick-reply-submit-btn(
+                      type="submit" value=thread._id
+                      name="submit"
+                    ) Submit
 
     script(src="/scripts/board.js")

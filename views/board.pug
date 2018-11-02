@@ -67,6 +67,7 @@ html
                       span.info-item.reply-created #{reply.created_on}
                       button.reply-report-btn(value=`${JSON.stringify({reply, thread})}`) Report
                     div.reply-text=reply.text
+                    form.delete-thread
                     div.reply-delete-row
                       input.reply-delete-input(type="text" placeholder="delete_password")
                       button.reply-delete-btn(value=reply._id) Delete

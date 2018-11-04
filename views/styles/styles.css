@@ -86,12 +86,14 @@ body, html {
     margin: 0 4px;
   }
 
-  a {
+  .view-link {
     text-decoration: none;
-    box-decoration-break: clone;
-    background-color: lightblue;
-    padding: 2px 8px;
-    border-radius: 2px;
+    margin: .5rem;
+    color: darkgreen;
+  }
+
+  .view-link:hover {
+    font-weight: 600;
   }
 
   /* Begin Form Styles */
@@ -176,9 +178,11 @@ body, html {
 
   .thread-text {
     font-size: 1.2rem;
-    /* font-weight: 200; */
     margin: 1rem;
-    margin-bottom: 1rem;
+    margin-bottom: .6rem;
+    padding: 1rem;
+    background-color: rgb(219, 255, 255);
+    border-radius: 4px;
   }
 
   .reply-count-row {
@@ -206,26 +210,45 @@ body, html {
     border-bottom: 1px solid darkgreen;
   }
 
+  .thread-info-row,
+  .reply-info-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    color: #363;
+  }
+
+  .reply:first-child {
+    padding-top: 0;
+  }
   .reply:last-child {
     border-bottom: none;
   }
 
   .reply-text {
-    margin: .8rem;
+    margin: .8rem 0;
+    padding: 1rem;
+    background-color: rgb(219, 255, 255);
+    border-radius: 4px;
   }
 
-  .reply-delete-row, .quick-reply-submit-row {
+  .reply-delete-row,
+  .thread-delete-row,
+  .quick-reply-submit-row {
     display: flex;
     justify-content: flex-end;
   }
 
   .reply-delete-row .reply-delete-input,
-  .quick-reply .quick-reply-delete-input {
+  .quick-reply .quick-reply-delete-input,
+  .thread-delete-row .thread-delete-input {
     width: 180px;
     border: 1px solid darkgreen;
   }
 
   .reply-delete-row .reply-delete-btn,
+  .thread-delete-row .thread-delete-btn,
   .quick-reply-submit-btn {
     background: none;
     background-color: lightsalmon;
@@ -249,6 +272,10 @@ body, html {
 
   .quick-reply .quick-reply-submit-btn {
     background-color: white;
+  }
+
+  .thread-delete-row {
+    margin-right: 1rem;
   }
 
 

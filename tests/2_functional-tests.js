@@ -30,11 +30,11 @@ let gen_docs
 before(done => {
   const newThreads = Array(20).fill().map((v,i) => ({
     board: 'test',
-    delete_password: 'password',
+    delete_password: 'threadpassword',
     text: `auto-generated thread ${i+1}`,
     replies: Array(5).fill().map((v, i) => ({
       text: `auto-generated reply ${i+1}`,
-      delete_password: 'password',
+      delete_password: 'replypassword',
     }))
   }))
 
@@ -82,7 +82,7 @@ suite('Functional Tests', function() {
           .post(`/api/threads/test`)
           .send({
             text: 'first test-generated thread',
-            delete_password: 'password',
+            delete_password: 'threadpassword',
           })
           .end((err, res) => {
             assert.ok(res.status)
@@ -150,7 +150,7 @@ suite('Functional Tests', function() {
       test('test delete request with non-existent thread_id', done => {
         chai.request(server)
           .delete(`/api/threads/test`)
-          .send({thread_id: fake_id, delete_password: 'password'})
+          .send({thread_id: fake_id, delete_password: 'threadpassword'})
           .end((err, res) => {
             assert.ok(res.status)
             assert.property(res.body, 'success', "response must include 'success' property")
@@ -181,7 +181,7 @@ suite('Functional Tests', function() {
         .delete(`/api/threads/test`)
         .send({
           thread_id: gen_doc._id.toString(),
-          delete_password: 'password'
+          delete_password: 'threadpassword'
         })
         .end((err, res) => {
           assert.ok(res.status)
@@ -264,7 +264,7 @@ suite('Functional Tests', function() {
           .post('/api/replies/test')
           .send({
             thread_id: fake_id,
-            delete_password: 'password',
+            delete_password: 'replypassword',
             text: 'first reply'
           })
           .end((err, res) => {
@@ -282,7 +282,7 @@ suite('Functional Tests', function() {
           .post('/api/replies/test')
           .send({
             thread_id: test_doc._id,
-            delete_password: 'password',
+            delete_password: 'replypassword',
             text: 'first test-generated reply'
           })
           .end((err, res) => {
@@ -445,7 +445,7 @@ suite('Functional Tests', function() {
           .send({
             thread_id: fake_id,
             reply_id: fake_id,
-            delete_password: 'password'
+            delete_password: 'replypassword'
           })
           .end((err, res) => {
             assert.ok(res.status)
@@ -463,7 +463,7 @@ suite('Functional Tests', function() {
           .send({
             thread_id: gen_doc._id.toString(),
             reply_id: gen_doc.replies[0]._id.toString(),
-            delete_password: 'wordpass'
+            delete_password: 'arglebargle'
           })
           .end((err, res) => {
             assert.ok(res.status)
@@ -479,7 +479,7 @@ suite('Functional Tests', function() {
         .send({
           thread_id: gen_doc._id.toString(),
           reply_id: gen_doc.replies[0]._id.toString(),
-          delete_password: 'password'
+          delete_password: 'replypassword'
         })
         .end(async(err, res) => {
           assert.ok(res.status)

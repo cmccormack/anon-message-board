@@ -64,6 +64,7 @@ function ReplyHandler(app) {
     const { board } = req.params
     const { thread_id } = req.query
 
+
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
       return next(Error(errors.array()[0].msg))
@@ -81,6 +82,7 @@ function ReplyHandler(app) {
         }
 
         thread = thread.toObject()
+        thread.replyCount = thread.replies.length
         thread.replies = thread.replies
           .map(({ delete_password, reported, ...reply }) => reply)
         res.json(thread)

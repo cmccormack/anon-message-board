@@ -32,7 +32,7 @@ function ReplyHandler(app) {
       $push: {
         replies: {
           $each: [{text, delete_password}],
-          $sort: { created_on: -1}
+          $sort: { created_on: 1}
         } 
       },
       bumped_on: new Date()
@@ -41,7 +41,7 @@ function ReplyHandler(app) {
     Thread.findOneAndUpdate(
       { _id: thread_id, board: req.params.board },
       update,
-      { new: true, sort: {'replies.created_on': 1} },
+      { new: true },
       (err, thread) => {
         if (err) {
           return next(Error(err))
@@ -52,7 +52,6 @@ function ReplyHandler(app) {
 
         thread = thread.toObject()
         delete thread.delete_password
-        console.log(thread)
         res.json({ success: true, data: thread })
       })
   }
@@ -109,7 +108,10 @@ function ReplyHandler(app) {
       if (!thread) {
         throw 'thread_id or reply_id not found'
       }
-      if (thread.delete_password !== delete_password) {
+
+      const reply = thread.replies.filter(r => r._id == reply_id)[0]
+
+      if (reply.delete_password !== delete_password) {
         return res.send('incorrect password')
       }
 

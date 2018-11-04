@@ -44,7 +44,8 @@ document.getElementById('new-thread-form').addEventListener('submit', e => {
   }
 
   fetchJSON(endpoint, method, body).then(({ data, success, error }) => {
-    location.reload()
+    location.hash = data._id
+    location.reload(true)
   }).catch(err => displayResponse(output, err.message))
 })
 
@@ -59,7 +60,6 @@ document.querySelectorAll('.quick-reply-form').forEach(el => {
       delete_password: delete_password.value,
       thread_id: submit.value
     }
-    console.log(body, endpoint)
 
     fetchJSON(endpoint, method, body).then(({ data, success, error }) => {
       location.reload()
@@ -82,7 +82,6 @@ document.querySelectorAll('.thread-report-btn').forEach(el => {
 document.querySelectorAll('.reply-report-btn').forEach(el => {
   el.addEventListener('click', e => {
     const { thread, reply } = JSON.parse(e.target.value)
-    console.log('reported!', thread._id, reply._id)
     fetchJSON(
       `/api/replies/${board}`,
       'PUT',
@@ -93,5 +92,46 @@ document.querySelectorAll('.reply-report-btn').forEach(el => {
           alert(`id ${reply._id} has been reported.`)
         }
     })
+  })
+})
+
+document.querySelectorAll('.delete-reply').forEach(el => {
+  el.addEventListener('submit', e => {
+    e.preventDefault()
+    const { delete_password: {value: delete_password}, submit } = e.target
+    const { thread_id, reply_id } = JSON.parse(submit.value)
+    const method = e.target.getAttribute('method')
+    const action = e.target.getAttribute('action')
+    fetchJSON(action, method, { thread_id, reply_id, delete_password })
+    .then(res => {
+      if (res === 'success') {
+        alert(`id ${reply_id} has been deleted.`)
+        location.hash = `#${thread_id}`
+        return location.reload(true)
+      }
+      const error = res.error ? res.error : res
+      alert(`Error deleting reply ${reply_id} - ${error}`)
+    })
+      .catch(err => console.error(err))
+  })
+})
+
+document.querySelectorAll('.delete-thread').forEach(el => {
+  el.addEventListener('submit', e => {
+    e.preventDefault()
+    const { delete_password: { value: delete_password }, submit } = e.target
+    const thread_id = submit.value
+    const method = e.target.getAttribute('method')
+    const action = e.target.getAttribute('action')
+    fetchJSON(action, method, { thread_id, delete_password })
+      .then(res => {
+        if (res === 'success') {
+          alert(`id ${thread_id} has been deleted.`)
+          return location.reload()
+        }
+        const error = res.error ? res.error : res
+        alert(`Error deleting thread ${thread_id} - ${error}`)
+      })
+      .catch(err => console.error(err))
   })
 })

@@ -29,17 +29,23 @@ html
             label(for="new-thread-text-input") Thread Text
                 span  - Required
             textarea#new-thread-text-input(
-                type="text"
-                placeholder="random"
-                name="text"
                 minLength="1"
+                name="text"
+                placeholder="random"
+                required
                 rows="4"
+                type="text"
             )
           div.input-row
             label(for="new-thread-password-input") Deletion Password
                 span  - Required
             input#new-thread-password-input(
-                type="text" placeholder="monkey123" name="password" minLength="1")
+              minLength="1"
+              name="password"
+              placeholder="monkey123"
+              required
+              type="text"
+            )
           button.submit-btn(type="submit") Submit
 
           div.input-row
@@ -62,6 +68,7 @@ html
                 input.thread-delete-input(
                   name="delete_password"
                   placeholder="delete_password"
+                  required
                   type="text"
                 )
                 button.thread-delete-btn(
@@ -74,7 +81,7 @@ html
               div.reply-count-row
                 span.reply-count= `${thread.replyCount} replies total `
                  = `(${thread.replyCount - thread.replies.length} hidden)`
-                a.view-link(href=`/b/${board}/${thread._id}`) view all threads
+                a.view-link(href=`/b/${board}/${thread._id}`) view full thread
               div.thread-replies
                 each reply in thread.replies
                   div.reply(id=reply._id)
@@ -92,6 +99,7 @@ html
                           input.reply-delete-input(
                             name="delete_password"
                             placeholder="delete_password"
+                            required
                             type="text"
                           )
                           button.reply-delete-btn(
@@ -105,16 +113,18 @@ html
                 form.quick-reply-form(action=`/api/replies/${board}` method="POST")
                   div.quick-reply-title Add a new reply!
                   textarea.quick-reply-input(
-                    type="text"
-                    placeholder="Quick reply.."
-                    name="text"
                     minLength="1"
+                    name="text"
+                    placeholder="Quick reply.."
+                    required
                     rows="4"
+                    type="text"
                   )
                   div.quick-reply-submit-row
                     input.quick-reply-delete-input(
                       name="delete_password"
                       placeholder="delete_password"
+                      required
                       type="text"
                     )
                     button.quick-reply-submit-btn(

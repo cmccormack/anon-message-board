@@ -53,17 +53,17 @@ document.querySelectorAll('.quick-reply-form').forEach(el => {
   el.addEventListener('submit', e => {
     e.preventDefault()
     const { target: form } = e
-    const { text, delete_password, submit, method } = form
+    const { text, delete_password, submit: {value: thread_id}, method } = form
     const endpoint = form.getAttribute('action')
     const body = {
       text: text.value,
       delete_password: delete_password.value,
-      thread_id: submit.value
+      thread_id
     }
 
     fetchJSON(endpoint, method, body).then(({ data, success, error }) => {
-      location.reload()
-    }).catch(err => displayResponse(output, err.message))
+      location.pathname = `/b/${board}/${thread_id}`
+    }).catch(err => alert(err.message))
   })
 })
 
@@ -127,7 +127,7 @@ document.querySelectorAll('.delete-thread').forEach(el => {
       .then(res => {
         if (res === 'success') {
           alert(`id ${thread_id} has been deleted.`)
-          return location.reload()
+          return location.reload(true)
         }
         const error = res.error ? res.error : res
         alert(`Error deleting thread ${thread_id} - ${error}`)

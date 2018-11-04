@@ -49,28 +49,56 @@ html
         each thread in threads
           div.thread
             div.thread-info-row(id=thread._id)
-              span.info-item.thread-id id: #{thread._id}
-              span.info-item.thread-bumped-on last bumped: #{thread.bumped_on}
+              span.info-item.thread-id thread_id: #{thread._id}
+              span.info-item.thread-bumped-on last bumped: #{thread.bumped_on.toUTCString()}
               button.thread-report-btn(value=thread._id) Report
             div.thread-text= thread.text
+
+            form.delete-thread(
+              action=`/api/threads/${board}`
+              method="DELETE"
+            )
+              div.thread-delete-row
+                input.thread-delete-input(
+                  name="delete_password"
+                  placeholder="delete_password"
+                  type="text"
+                )
+                button.thread-delete-btn(
+                  name="submit"
+                  type="submit"
+                  value=thread._id
+              ) Delete Thread
 
             if thread.replies.length > 0
               div.reply-count-row
                 span.reply-count= `${thread.replyCount} replies total `
                  = `(${thread.replyCount - thread.replies.length} hidden)`
-                a(href=`/b/${board}/${thread._id}`)
+                a.view-link(href=`/b/${board}/${thread._id}`) view all threads
               div.thread-replies
                 each reply in thread.replies
                   div.reply(id=reply._id)
                     div.reply-info-row
-                      span.info-item.reply-id id: #{reply._id}
-                      span.info-item.reply-created #{reply.created_on}
+                      span.info-item.reply-id reply_id: #{reply._id}
+                      span.info-item.reply-created #{reply.created_on.toUTCString()}
                       button.reply-report-btn(value=`${JSON.stringify({reply, thread})}`) Report
                     div.reply-text=reply.text
-                    form.delete-thread
-                    div.reply-delete-row
-                      input.reply-delete-input(type="text" placeholder="delete_password")
-                      button.reply-delete-btn(value=reply._id) Delete
+                    unless reply.text === '[deleted]'
+                      form.delete-reply(
+                        action=`/api/replies/${board}`
+                        method="DELETE"
+                      )
+                        div.reply-delete-row
+                          input.reply-delete-input(
+                            name="delete_password"
+                            placeholder="delete_password"
+                            type="text"
+                          )
+                          button.reply-delete-btn(
+                            name="submit"
+                            type="submit"
+                            value=`${JSON.stringify({reply_id: reply._id, thread_id: thread._id})}`
+                        ) Delete Reply
             
             div.thread-replies
               div.quick-reply

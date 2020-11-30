@@ -3,6 +3,7 @@ const helmet = require("helmet")
 const express = require("express")
 const bodyParser = require("body-parser")
 const mongoose = require('mongoose')
+const noCache = require('nocache')
 require('dotenv').config({ path: path.resolve(__dirname, '.env') })
 
 
@@ -10,9 +11,17 @@ require('dotenv').config({ path: path.resolve(__dirname, '.env') })
 //  Configure and connect to MongoDB database
 ///////////////////////////////////////////////////////////
 const { dbuser, dbpw, dbhost, dbname } = process.env
+const mongourl = `mongodb+srv://${dbuser}:${dbpw}@${dbhost}/${dbname}`
+console.log(mongourl)
 mongoose.Promise = global.Promise
 mongoose.set('useFindAndModify', false)
-mongoose.connect(`mongodb://${dbuser}:${dbpw}@${dbhost}/${dbname}`, { useNewUrlParser: true })
+mongoose.connect(
+  mongourl,
+  {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  }
+)
 
 // The connection used by default for every model created using mongoose.model
 const db = mongoose.connection
@@ -41,8 +50,8 @@ app.use(bodyParser.urlencoded({ extended: false, }))
 app.use(bodyParser.json())
 
 // Configure security using Helmetjs
+app.use(noCache())
 app.use(helmet())
-app.use(helmet.noCache())
 app.use(helmet.hidePoweredBy({ setTo: 'PHP 4.2.0' }))
 app.use(helmet.contentSecurityPolicy({
   directives: {

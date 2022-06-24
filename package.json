@@ -44,7 +44,7 @@
     "mocha": "^8.2.1",
     "mongoose": "^5.10.18",
     "nocache": "^2.1.0",
-    "node-fetch": "^2.2.0",
+    "node-fetch": "^2.6.7",
     "pug": "^2.0.3"
   },
   "devDependencies": {
